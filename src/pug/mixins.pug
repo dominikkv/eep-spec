@@ -1,0 +1,52 @@
+mixin eepListItem(itm,rorg)
+  if itm
+    if itm.eep == contents.eep
+    a(href="/eep/"+itm.eep+".html" class="rorg_"+rorg)
+      .eepListItem(class=(contents.eep==itm.eep ? " selected":""))=itm.eep
+mixin eepList(rorg,func)
+  each itm in alleep
+    if itm.eep.substring(0,2)==rorg
+      if func
+        if itm.eep.substring(3,5)==func
+          +eepListItem(itm,"f6")
+      else
+        +eepListItem(itm,"f6")
+mixin condition(item)
+  if item.condition
+    if item.condition.statusfield
+      - t99 = new Teldata(1);
+      each statusbit in item.condition.statusfield
+        - t99.setSingleBit(statusbit.bitoffs*1,statusbit.value*1)
+      h3 Status 0x#{t99.toString()}(#{t99.toString(2)})
+    if item.condition.direction
+      h3 Direction #{item.direction}
+    if item.condition.datafield
+      h3 Data #{item.condition.datafield.bitoffs} #{item.condition.datafield.bitsize} #{item.condition.datafield.value}
+
+mixin bitMask(itm,size)
+  - var t1 = new Teldata(size)
+  - for(var i = 0; i<itm.bitsize;i++){
+  -   t1.setSingleBit(itm.bitoffs*1+i,1) 
+  - }
+  !=t1.toSVG()
+
+mixin createTelegram(c)
+  - var size=1
+  - if(parseInt(contents.rorg_number)==0xa5) size=4
+  - var t1= new Teldata(size)
+  - var s1 = new Teldata(1)
+  if c.condition
+    if c.condition.statusfield
+      each x in c.condition.statusfield
+        - s1.setBits(x.bitoffs*1,x.bitsize*1,x.value*1)
+  if c.datafield
+    each x in c.datafield
+      if x.enum
+        if x.enum.item && x.enum.item.length>0
+          - var v = x.enum.item[Math.floor(Math.random()*x.enum.item.length)]
+          if v.min
+            - var v1= v.min*1+Math.floor(Math.random()*(v.max*1-v.min*1))
+            - t1.setBits(x.bitoffs,x.bitsize,v1)
+          else
+            - t1.setBits(x.bitoffs,x.bitsize,v.value)
+    .telegram <span>#{parseInt(contents.rorg_number).toString(16)}</span><span>#{t1.toString()}</span><span>xxxxxxxx</span><span>#{s1.toString()}</span>

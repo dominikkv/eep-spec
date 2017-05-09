@@ -1,0 +1,924 @@
+<!DOCTYPE html><html lang="en"><head><title>a5-20-04 (Heating Radiator Valve Actuating Drive with Feed and Room Temperature Measurement, Local Set Point Control and Display)</title><link rel="stylesheet" href="/css/main.css"><script src="/script/main.js"></script><script>EEP={"number":"0x04","title":"Heating Radiator Valve Actuating Drive with Feed and Room Temperature Measurement, Local Set Point Control and Display","status":"released","description":"\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Description</span>\n            <br/>The following document describes the communication between a controller\n            and an intelligent heating radiator valve actuating drive with the following features:\n            <ul>\n            <li>Feed temperature measurement</li>\n            <br/>\n            <li>Room temperature measurement</li>\n            <br/>\n            <li>Current position feedback</li>\n            <br/>\n            <li>Display</li>\n            <br/>\n            <li>Button</li>\n            <br/>\n            <li>On device temperature set point selection</li>\n            <br/>\n            </ul>\n            In order to be able to process this information and control the actuator,\n            every command has been included in this document. Each customer can use\n            his own controller by implementing the EEP of this document.\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Data exchange</span>\n            <br/>Direction: bidirectional\n            <br/>Addressing: unicast (ADT)\n            <br/>Communication trigger: event- & time-triggered\n            <br/>Communication interval: can be configured by the controller\n            <br/>Trigger event: a trigger event occurs when the button is pressed\n            or the local set point is used\n            <br/>Tx delay: 550 ms is the maximum response time for Smart-Ack Devices\n            and 1100 ms for devices which use the 4BS teach-in method\n            <br/>Rx timeout: just 1 message per wake-up cycle\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Teach-in</span>\n            <br/>Teach-in method: Smart-Ack teach-in and 4BS teach-in Variation 3\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Security</span>\n            <br/>Encryption supported: no\n            <br/>Security level format: -\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Telegram Description of Direction 1</span>\n            (Transmit mode / Message from the actuator to the controller)\n            <br/>\n            <br/>\n            This direction initializes the communication, shares the needed\n            data and waits for an answer from the controller.\n            This allows the device to work in deep sleep mode the rest of the time.\n            <br/>\n            <br/>Each message from the actuator contains the following information:\n            <ul>\n            <li>Current Position (CP)\n            <br/>The current position is a feedback value from the actuator.\n            It indicates the actual per cent position of the valve.\n            The value 0 % means that the valve is completely closed and 100 %\n            completely open. The controller can use this information for the room\n            temperature regulation.</li>\n            </ul>\n            <ul><li>Temperature Set Point OR Feed Temperature (FTS)*\n            <br/>\n            * This byte is shared by the Temperature Set Point and the Feed\n            Temperature value. Only one of these values is sent in the same message.\n            Which value is transmitted is indicated by DB0.1 (TS bit).\n            <br/>\n            The feed temperature is the water temperature in the radiator input,\n            which can be useful for implementing several features in the home\n            automation system.\n            <br/>\n            The temperature set point is only sent when the user specifies a new\n            room temperature by using the local temperature set point on the device.\n            </li></ul>\n            <ul><li>Room Temperature (TMP) OR Failure Code (FC)*\n            <br/>\n            * This byte is shared by the Room Temperature and Failure Code Value.\n            Only one of these values is sent in the same message.\n            The value transmitted is indicated by DB0.0 (FL).\n            By default it is the room temperature.\n            <br/>\n            The room temperature is the ambient temperature of the place in which\n            the device is used and is measured by the actuator.\n            This value is transmitted if no error occurred.\n            <br/>\n            The Failure Code is transmitted instead of the Room Temperature\n            if an error occurs.\n            </li></ul>\n            <ul><li>Measurement Status (MST)\n            <br/>\n            The temperature measurements (room and feed temperature) can be\n            deactivated in order to reduce the energy consumption.\n            This can be specified only by the controller i.e. to implement\n            summer mode or to replace the internal room temperature measurement\n            of the actuator by an external one.\n            </li></ul>\n            <ul><li>Status Request (SRT)\n            <br/>\n            The status request bit can be used to ask the controller about its\n            status. If the controller does not send back the correct reply, the\n            actuator will start its own room temperature regulation.\n            With this feature, a frozen actuator would not interrupt the room\n            temperature regulation.\n            </li></ul>\n            <ul><li>Teach-in Bit (LRNB)\n            <br/>\n            For establishing the radio link between the controller and the actuator,\n            a teachin message has to be sent from the actuator to the controller.\n            If the binary value 0 is transmitted, the message will be identified\n            as a teach-in one and will allow the controller to receive the\n            EnOcean-ID of the actuator.\n            </li></ul>\n            <ul><li>Button Lock Status (BLS)\n            <br/>\n            The button lock status can be set by the controller. This enables or\n            disables the manual room temperature selection. If locked, the manual\n            room temperature selection on the actuator will be disabled and the\n            user will be notified with a symbol on the display.\n            </li></ul>\n            <ul><li>Temperature Selection (TS)\n            <br/>\n            If the user specifies a temperature set point manually on the device,\n            this will be sent to the controller and indicated on the temperature\n            selection field (TS). It can indicate that the field FTS contains the\n            temperature set point (binary value = 1) or the feed temperature\n            (binary value = 0).\n            </li></ul>\n            <ul><li>Failure (FL)\n            <br/>\n            Indicates the occurrence of a failure. The room temperature value is\n            replaced by the failure code if the bit FL has the binary value 1.\n            </li></ul>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Telegram Description of Direction 2</span>\n            (Receive mode / Commands from the controller to the actuator)\n            <br/>\n            <br/>\n            The messages from the controller to the actuator are sent in this direction.\n            A message in this direction has to be sent after receiving a message from\n            the actuator, in order to achieve a successful communication.\n            If the controller message is not received by the actuator in a specific\n            time after a direction 1 message, no information will be received by\n            the actuator. The time that the actuator will wait for a reply is defined\n            by the Smart-Ack Teach-In process. For controllers which cannot use\n            Smart-Ack, the 4BS Teach-in Variation 3 has to be used, with a maximum\n            response time of 1100 ms.\n            <br/>\n            <br/>Each message from the controller contains the following information:\n            <ul><li>\n            Valve Position (POS)\n            <br/>\n            The valve position is a set point position for the valve.\n            It indicates the per cent position of the valve, which the actuator\n            has to reach. The value 0 % means that the valve is completely closed\n            and 100 % completely open. The controller should be able to regulate\n            the room temperature by adjusting this value.\n            </li></ul>\n            <ul><li>\n            Temperature Set Point (TSP)\n            <br/>\n            The controller can send the temperature set point to the actuator in\n            order to allow the user to see the actual specified temperature in\n            the device display. This value does not affect room temperature regulation.\n            </li></ul>\n            <ul><li>\n            Measurement Control (MC)\n            <br/>\n            The temperature measurements (room and feed temperature) can be\n            deactivated in order to reduce energy consumption. This can be specified\n            only by the controller i.e. to implement summer mode or to replace\n            the internal room temperature measurement by the device with an\n            external one. The measurement control bit enables the controller to\n            activate or deactivate the measurements.\n            </li></ul>\n            <ul><li>\n            Wake-up Cycle (WUC)\n            <br/>\n            To save energy, the actuator works in deep sleep mode the most of the\n            time. Nevertheless it has to wake up to communicate with the controller\n            and to reach the valve position specified by the controller.\n            The longer the actuator remains in deep sleep mode, the more energy\n            efficient will be your batteries. If fast response is required, the\n            actuator has to communicate more frequently with the controller and\n            that is why it should use a shorter wake-up cycle. If a fast room\n            temperature control is not required, the wake-up cycle should be set\n            by the controller as long as possible.\n            </li></ul>\n            <ul><li>\n            Display Orientation (DSO)\n            <br/>\n            The heater valves can be installed in different directions.\n            That is why it can be useful to have the option to choose the fitting\n            display orientation. This feature makes reading the display easier.\n            </li></ul>\n            <ul><li>\n            Teach-in Bit (LRNB)\n            <br/>\n            For establishing a radio link between the controller and the actuator,\n            a teach-in telegram has to be sent from the controller to the actuator.\n            If the binary value 0 is transmitted, the message will be identified\n            as a teach-in one and will allow the device to receive the EnOcean-ID\n            from the controller.\n            </li></ul>\n            <ul><li>\n            Button Lock Control (BLS)\n            <br/>\n            The button lock status can be set by the controller. This enables or\n            disables the manual room temperature selection. If locked, the manual\n            room temperature selection on the actuator will be disabled and the\n            user will be notified with a symbol on the display.\n            </li></ul>\n            <ul><li>\n            Service Command (SER)\n            <br/>\n            In order to adapt the actuator to a new valve, the controller can\n            order the execution of some functions of the actuator:\n            <br/>\n            - run initialisation: This function has to be executed for adapting\n            the actuator to the length of the valve stroke.\n            <br/>\n            - open valve: To facilitate the installation or maintenance of the\n            valve, the actuator can open the valve completely.\n            After completely opening the valve it is necessary to run the initialisation.\n            <br/>\n            - close valve: Completely close the valve.\n            </li></ul>","case":[{"direction":"1","condition":{"direction":"1"},"datafield":[{"reserved":{},"bitoffs":"26","bitsize":"2"},{"data":"LRN Bit","shortcut":"LRNB","description":"LRN Bit","bitoffs":"28","bitsize":"1","enum":{"item":[{"value":"0","description":"Teach-in telegram"},{"value":"1","description":"Data telegram"}]}},{"data":"Current Position","shortcut":"CP","description":"Current valve position","info":"","bitoffs":"0","bitsize":"8","range":{"min":"0","max":"100"},"scale":{"min":"0","max":"100"},"unit":"%"},{"data":"Feed Temperature OR Temperature Set Point","shortcut":"FTS","description":"Either current feed temperature value or temperature\n              set point (defined by DB0.1)","info":"","bitoffs":"8","bitsize":"8","range":{"min":"0","max":"255"},"scale":{"min":"20 .. 80","max":"10 .. 30"},"unit":"°C"},{"data":"Room Temperature OR Failure Code","shortcut":"TMPFC","description":"Current room temperature value (10...30°C) OR Failure Code (Enum)","info":{},"bitoffs":"16","bitsize":"8","enum":{"item":[{"min":"0","max":"255","scale":{"min":"10","max":"30"},"unit":"°C"},{"value":"00 ... 16","description":"Reserved"},{"value":"17","description":"Measurement error"},{"value":"18","description":"Battery empty"},{"value":"19","description":"Reserved"},{"value":"20","description":"Frost protection"},{"value":"21 ... 32","description":"Reserved"},{"value":"33","description":"Blocked valve"},{"value":"34 ... 35","description":"Reserved"},{"value":"36","description":"End point detection error"},{"value":"37 ... 39","description":"Reserved"},{"value":"40","description":"No valve"},{"value":"41 ... 48","description":"Reserved"},{"value":"49","description":"Not taught in"},{"value":"50 ... 52","description":"Reserved"},{"value":"53","description":"No response from controller"},{"value":"54","description":"Teach-in error"},{"value":"55 ... 255","description":"Reserved"}]}},{"data":"Measurement Status","shortcut":"MST","description":"Shows if the temperature measurement (feed temperature\n              and room temperature) is active","bitoffs":"24","bitsize":"1","enum":{"item":[{"value":"0","description":"Active"},{"value":"1","description":"Inactive"}]}},{"data":"Status Request","shortcut":"STR","description":"Request for status from the controller","bitoffs":"25","bitsize":"1","enum":{"item":[{"value":"0","description":"No change"},{"value":"1","description":"Status requested"}]}},{"data":"Button Lock Status","shortcut":"BLS","description":"Shows if all buttons on the actuator are locked","bitoffs":"29","bitsize":"1","enum":{"item":[{"value":"0","description":"Unlocked"},{"value":"1","description":"Locked"}]}},{"data":"Temperature Selection","shortcut":"TS","description":"Defines which temperature value is transmitted in DB2","bitoffs":"30","bitsize":"1","enum":{"item":[{"value":"0","description":"Feed temperature"},{"value":"1","description":"Temperature set point"}]}},{"data":"Failure","shortcut":"FL","description":"A failure occurred, see DB1.7-DB1.0 for Failure Code","bitoffs":"31","bitsize":"1","enum":{"item":[{"value":"0","description":"No failure (TMP is transmitted)"},{"value":"1","description":"failure (FC is transmitted)"}]}}]},{"direction":"2","condition":{"direction":"2"},"datafield":[{"reserved":{},"bitoffs":"16","bitsize":"1"},{"reserved":{},"bitoffs":"24","bitsize":"2"},{"data":"Valve Position","shortcut":"POS","description":"Valve position","info":{},"bitoffs":"0","bitsize":"8","range":{"min":"0","max":"100"},"scale":{"min":"0","max":"100"},"unit":"%"},{"data":"Temperature Set Point","shortcut":"TSP","description":"Temperature set point","info":{},"bitoffs":"8","bitsize":"8","range":{"min":"0","max":"255"},"scale":{"min":"10","max":"30"},"unit":"°C"},{"data":"LRN Bit","shortcut":"LRNB","description":"LRN Bit","bitoffs":"28","bitsize":"1","enum":{"item":[{"value":"0","description":"Teach-in telegram"},{"value":"1","description":"Data telegram"}]}},{"data":"Measurement Control","shortcut":"MC","description":"Control the temperature measurement (feed temperature\n              + room temperature)","bitoffs":"17","bitsize":"1","enum":{"item":[{"value":"0","description":"Enable"},{"value":"1","description":"Disable"}]}},{"data":"Wake-up Cycle","shortcut":"WUC","description":"Defines the cyclic wake-up time","bitoffs":"18","bitsize":"6","enum":{"item":[{"value":"0","description":"10 sec"},{"value":"1","description":"60 sec"},{"value":"2","description":"90 sec"},{"value":"3","description":"120 sec"},{"value":"4","description":"150 sec"},{"value":"5","description":"180 sec"},{"value":"6","description":"210 sec"},{"value":"7","description":"240 sec"},{"value":"8","description":"270 sec"},{"value":"9","description":"300 sec (5 min)"},{"value":"10","description":"330 sec"},{"value":"11","description":"360 sec"},{"value":"12","description":"390 sec"},{"value":"13","description":"420 sec"},{"value":"14","description":"450 sec"},{"value":"15","description":"480 sec"},{"value":"16","description":"510 sec"},{"value":"17","description":"540 sec"},{"value":"18","description":"570 sec"},{"value":"19","description":"600 sec (10 min)"},{"value":"20","description":"630 sec"},{"value":"21","description":"660 sec"},{"value":"22","description":"690 sec"},{"value":"23","description":"720 sec"},{"value":"24","description":"750 sec"},{"value":"25","description":"780 sec"},{"value":"26","description":"810 sec"},{"value":"27","description":"840 sec"},{"value":"28","description":"870 sec"},{"value":"29","description":"900 sec (15 min)"},{"value":"30","description":"930 sec"},{"value":"31","description":"960 sec"},{"value":"32","description":"990 sec"},{"value":"33","description":"1020 sec"},{"value":"34","description":"1050 sec"},{"value":"35","description":"1080 sec"},{"value":"36","description":"1110 sec"},{"value":"37","description":"1140 sec"},{"value":"38","description":"1170 sec"},{"value":"39","description":"1200 sec (20 min)"},{"value":"40","description":"1230 sec"},{"value":"41","description":"1260 sec"},{"value":"42","description":"1290 sec"},{"value":"43","description":"1320 sec"},{"value":"44","description":"1350 sec"},{"value":"45","description":"1380 sec"},{"value":"46","description":"1410 sec"},{"value":"47","description":"1440 sec"},{"value":"48","description":"1470 sec"},{"value":"49","description":"1500 sec (25 min)"},{"value":"50","description":"3 hrs"},{"value":"51","description":"6 hrs"},{"value":"52","description":"9 hrs"},{"value":"53","description":"12 hrs"},{"value":"54","description":"15 hrs"},{"value":"55","description":"18 hrs"},{"value":"56","description":"21 hrs"},{"value":"57","description":"24 hrs"},{"value":"58","description":"27 hrs"},{"value":"59","description":"30 hrs"},{"value":"60","description":"33 hrs"},{"value":"61","description":"36 hrs"},{"value":"62","description":"39 hrs"},{"value":"63","description":"42 hrs (max)"}]}},{"data":"Display Orientation","shortcut":"DSO","description":"Adjusts the display orientation","bitoffs":"26","bitsize":"2","enum":{"item":[{"value":"0","description":"0°"},{"value":"1","description":"90°"},{"value":"2","description":"180°"},{"value":"3","description":"270°"}]}},{"data":"Button Lock Control","shortcut":"BLC","description":"Set the button lock status","bitoffs":"29","bitsize":"1","enum":{"item":[{"value":"0","description":"Unlocked"},{"value":"1","description":"Locked"}]}},{"data":"Service Command","shortcut":"SER","description":"Initiates certain temporary service operations","bitoffs":"30","bitsize":"2","enum":{"item":[{"value":"0","description":"No change"},{"value":"1","description":"Open valve"},{"value":"2","description":"Run initialisation"},{"value":"3","description":"Close valve"}]}}]}],"originalIndex":125,"eep":"a5-20-04","rorg_title":"4BS Telegram","rorg_number":"0xA5","func_title":"HVAC Components","func_number":"0x20","submitter":["Holter Regelarmaturen GmbH & Co. KG"]}</script></head><body><div id="header"><div>Node-Enocean | EEP Info Browser</div></div><div id="sidebar"><div><h3>f6</h3><a class="rorg_f6" href="/eep/f6-02-01.html"><div class="eepListItem">f6-02-01</div></a><a class="rorg_f6" href="/eep/f6-02-02.html"><div class="eepListItem">f6-02-02</div></a><a class="rorg_f6" href="/eep/f6-02-03.html"><div class="eepListItem">f6-02-03</div></a><a class="rorg_f6" href="/eep/f6-02-04.html"><div class="eepListItem">f6-02-04</div></a><a class="rorg_f6" href="/eep/f6-03-01.html"><div class="eepListItem">f6-03-01</div></a><a class="rorg_f6" href="/eep/f6-03-02.html"><div class="eepListItem">f6-03-02</div></a><a class="rorg_f6" href="/eep/f6-04-01.html"><div class="eepListItem">f6-04-01</div></a><a class="rorg_f6" href="/eep/f6-04-02.html"><div class="eepListItem">f6-04-02</div></a><a class="rorg_f6" href="/eep/f6-05-01.html"><div class="eepListItem">f6-05-01</div></a><a class="rorg_f6" href="/eep/f6-10-00.html"><div class="eepListItem">f6-10-00</div></a><a class="rorg_f6" href="/eep/f6-10-01.html"><div class="eepListItem">f6-10-01</div></a></div><div><h3>d5</h3><a class="rorg_f6" href="/eep/d5-00-01.html"><div class="eepListItem">d5-00-01</div></a></div><div><h3>a5</h3><a class="rorg_f6" href="/eep/a5-02-01.html"><div class="eepListItem">a5-02-01</div></a><a class="rorg_f6" href="/eep/a5-02-02.html"><div class="eepListItem">a5-02-02</div></a><a class="rorg_f6" href="/eep/a5-02-03.html"><div class="eepListItem">a5-02-03</div></a><a class="rorg_f6" href="/eep/a5-02-04.html"><div class="eepListItem">a5-02-04</div></a><a class="rorg_f6" href="/eep/a5-02-05.html"><div class="eepListItem">a5-02-05</div></a><a class="rorg_f6" href="/eep/a5-02-06.html"><div class="eepListItem">a5-02-06</div></a><a class="rorg_f6" href="/eep/a5-02-07.html"><div class="eepListItem">a5-02-07</div></a><a class="rorg_f6" href="/eep/a5-02-08.html"><div class="eepListItem">a5-02-08</div></a><a class="rorg_f6" href="/eep/a5-02-09.html"><div class="eepListItem">a5-02-09</div></a><a class="rorg_f6" href="/eep/a5-02-0a.html"><div class="eepListItem">a5-02-0a</div></a><a class="rorg_f6" href="/eep/a5-02-0b.html"><div class="eepListItem">a5-02-0b</div></a><a class="rorg_f6" href="/eep/a5-02-10.html"><div class="eepListItem">a5-02-10</div></a><a class="rorg_f6" href="/eep/a5-02-11.html"><div class="eepListItem">a5-02-11</div></a><a class="rorg_f6" href="/eep/a5-02-12.html"><div class="eepListItem">a5-02-12</div></a><a class="rorg_f6" href="/eep/a5-02-13.html"><div class="eepListItem">a5-02-13</div></a><a class="rorg_f6" href="/eep/a5-02-14.html"><div class="eepListItem">a5-02-14</div></a><a class="rorg_f6" href="/eep/a5-02-15.html"><div class="eepListItem">a5-02-15</div></a><a class="rorg_f6" href="/eep/a5-02-16.html"><div class="eepListItem">a5-02-16</div></a><a class="rorg_f6" href="/eep/a5-02-17.html"><div class="eepListItem">a5-02-17</div></a><a class="rorg_f6" href="/eep/a5-02-18.html"><div class="eepListItem">a5-02-18</div></a><a class="rorg_f6" href="/eep/a5-02-19.html"><div class="eepListItem">a5-02-19</div></a><a class="rorg_f6" href="/eep/a5-02-1a.html"><div class="eepListItem">a5-02-1a</div></a><a class="rorg_f6" href="/eep/a5-02-1b.html"><div class="eepListItem">a5-02-1b</div></a><a class="rorg_f6" href="/eep/a5-02-20.html"><div class="eepListItem">a5-02-20</div></a><a class="rorg_f6" href="/eep/a5-02-30.html"><div class="eepListItem">a5-02-30</div></a><a class="rorg_f6" href="/eep/a5-04-01.html"><div class="eepListItem">a5-04-01</div></a><a class="rorg_f6" href="/eep/a5-04-02.html"><div class="eepListItem">a5-04-02</div></a><a class="rorg_f6" href="/eep/a5-04-03.html"><div class="eepListItem">a5-04-03</div></a><a class="rorg_f6" href="/eep/a5-05-01.html"><div class="eepListItem">a5-05-01</div></a><a class="rorg_f6" href="/eep/a5-06-01.html"><div class="eepListItem">a5-06-01</div></a><a class="rorg_f6" href="/eep/a5-06-02.html"><div class="eepListItem">a5-06-02</div></a><a class="rorg_f6" href="/eep/a5-06-03.html"><div class="eepListItem">a5-06-03</div></a><a class="rorg_f6" href="/eep/a5-06-04.html"><div class="eepListItem">a5-06-04</div></a><a class="rorg_f6" href="/eep/a5-06-05.html"><div class="eepListItem">a5-06-05</div></a><a class="rorg_f6" href="/eep/a5-07-01.html"><div class="eepListItem">a5-07-01</div></a><a class="rorg_f6" href="/eep/a5-07-02.html"><div class="eepListItem">a5-07-02</div></a><a class="rorg_f6" href="/eep/a5-07-03.html"><div class="eepListItem">a5-07-03</div></a><a class="rorg_f6" href="/eep/a5-08-01.html"><div class="eepListItem">a5-08-01</div></a><a class="rorg_f6" href="/eep/a5-08-02.html"><div class="eepListItem">a5-08-02</div></a><a class="rorg_f6" href="/eep/a5-08-03.html"><div class="eepListItem">a5-08-03</div></a><a class="rorg_f6" href="/eep/a5-09-02.html"><div class="eepListItem">a5-09-02</div></a><a class="rorg_f6" href="/eep/a5-09-04.html"><div class="eepListItem">a5-09-04</div></a><a class="rorg_f6" href="/eep/a5-09-05.html"><div class="eepListItem">a5-09-05</div></a><a class="rorg_f6" href="/eep/a5-09-06.html"><div class="eepListItem">a5-09-06</div></a><a class="rorg_f6" href="/eep/a5-09-07.html"><div class="eepListItem">a5-09-07</div></a><a class="rorg_f6" href="/eep/a5-09-08.html"><div class="eepListItem">a5-09-08</div></a><a class="rorg_f6" href="/eep/a5-09-09.html"><div class="eepListItem">a5-09-09</div></a><a class="rorg_f6" href="/eep/a5-09-0a.html"><div class="eepListItem">a5-09-0a</div></a><a class="rorg_f6" href="/eep/a5-09-0b.html"><div class="eepListItem">a5-09-0b</div></a><a class="rorg_f6" href="/eep/a5-10-01.html"><div class="eepListItem">a5-10-01</div></a><a class="rorg_f6" href="/eep/a5-10-02.html"><div class="eepListItem">a5-10-02</div></a><a class="rorg_f6" href="/eep/a5-10-03.html"><div class="eepListItem">a5-10-03</div></a><a class="rorg_f6" href="/eep/a5-10-04.html"><div class="eepListItem">a5-10-04</div></a><a class="rorg_f6" href="/eep/a5-10-05.html"><div class="eepListItem">a5-10-05</div></a><a class="rorg_f6" href="/eep/a5-10-06.html"><div class="eepListItem">a5-10-06</div></a><a class="rorg_f6" href="/eep/a5-10-07.html"><div class="eepListItem">a5-10-07</div></a><a class="rorg_f6" href="/eep/a5-10-08.html"><div class="eepListItem">a5-10-08</div></a><a class="rorg_f6" href="/eep/a5-10-09.html"><div class="eepListItem">a5-10-09</div></a><a class="rorg_f6" href="/eep/a5-10-0a.html"><div class="eepListItem">a5-10-0a</div></a><a class="rorg_f6" href="/eep/a5-10-0b.html"><div class="eepListItem">a5-10-0b</div></a><a class="rorg_f6" href="/eep/a5-10-0c.html"><div class="eepListItem">a5-10-0c</div></a><a class="rorg_f6" href="/eep/a5-10-0d.html"><div class="eepListItem">a5-10-0d</div></a><a class="rorg_f6" href="/eep/a5-10-10.html"><div class="eepListItem">a5-10-10</div></a><a class="rorg_f6" href="/eep/a5-10-11.html"><div class="eepListItem">a5-10-11</div></a><a class="rorg_f6" href="/eep/a5-10-12.html"><div class="eepListItem">a5-10-12</div></a><a class="rorg_f6" href="/eep/a5-10-13.html"><div class="eepListItem">a5-10-13</div></a><a class="rorg_f6" href="/eep/a5-10-14.html"><div class="eepListItem">a5-10-14</div></a><a class="rorg_f6" href="/eep/a5-10-15.html"><div class="eepListItem">a5-10-15</div></a><a class="rorg_f6" href="/eep/a5-10-16.html"><div class="eepListItem">a5-10-16</div></a><a class="rorg_f6" href="/eep/a5-10-17.html"><div class="eepListItem">a5-10-17</div></a><a class="rorg_f6" href="/eep/a5-10-18.html"><div class="eepListItem">a5-10-18</div></a><a class="rorg_f6" href="/eep/a5-10-19.html"><div class="eepListItem">a5-10-19</div></a><a class="rorg_f6" href="/eep/a5-10-1a.html"><div class="eepListItem">a5-10-1a</div></a><a class="rorg_f6" href="/eep/a5-10-1b.html"><div class="eepListItem">a5-10-1b</div></a><a class="rorg_f6" href="/eep/a5-10-1c.html"><div class="eepListItem">a5-10-1c</div></a><a class="rorg_f6" href="/eep/a5-10-1d.html"><div class="eepListItem">a5-10-1d</div></a><a class="rorg_f6" href="/eep/a5-10-1e.html"><div class="eepListItem">a5-10-1e</div></a><a class="rorg_f6" href="/eep/a5-10-1f.html"><div class="eepListItem">a5-10-1f</div></a><a class="rorg_f6" href="/eep/a5-10-20.html"><div class="eepListItem">a5-10-20</div></a><a class="rorg_f6" href="/eep/a5-10-21.html"><div class="eepListItem">a5-10-21</div></a><a class="rorg_f6" href="/eep/a5-10-22.html"><div class="eepListItem">a5-10-22</div></a><a class="rorg_f6" href="/eep/a5-10-23.html"><div class="eepListItem">a5-10-23</div></a><a class="rorg_f6" href="/eep/a5-11-01.html"><div class="eepListItem">a5-11-01</div></a><a class="rorg_f6" href="/eep/a5-11-02.html"><div class="eepListItem">a5-11-02</div></a><a class="rorg_f6" href="/eep/a5-11-03.html"><div class="eepListItem">a5-11-03</div></a><a class="rorg_f6" href="/eep/a5-11-04.html"><div class="eepListItem">a5-11-04</div></a><a class="rorg_f6" href="/eep/a5-11-05.html"><div class="eepListItem">a5-11-05</div></a><a class="rorg_f6" href="/eep/a5-12-00.html"><div class="eepListItem">a5-12-00</div></a><a class="rorg_f6" href="/eep/a5-12-01.html"><div class="eepListItem">a5-12-01</div></a><a class="rorg_f6" href="/eep/a5-12-02.html"><div class="eepListItem">a5-12-02</div></a><a class="rorg_f6" href="/eep/a5-12-03.html"><div class="eepListItem">a5-12-03</div></a><a class="rorg_f6" href="/eep/a5-12-04.html"><div class="eepListItem">a5-12-04</div></a><a class="rorg_f6" href="/eep/a5-12-05.html"><div class="eepListItem">a5-12-05</div></a><a class="rorg_f6" href="/eep/a5-12-10.html"><div class="eepListItem">a5-12-10</div></a><a class="rorg_f6" href="/eep/a5-13-01.html"><div class="eepListItem">a5-13-01</div></a><a class="rorg_f6" href="/eep/a5-13-02.html"><div class="eepListItem">a5-13-02</div></a><a class="rorg_f6" href="/eep/a5-13-03.html"><div class="eepListItem">a5-13-03</div></a><a class="rorg_f6" href="/eep/a5-13-04.html"><div class="eepListItem">a5-13-04</div></a><a class="rorg_f6" href="/eep/a5-13-05.html"><div class="eepListItem">a5-13-05</div></a><a class="rorg_f6" href="/eep/a5-13-06.html"><div class="eepListItem">a5-13-06</div></a><a class="rorg_f6" href="/eep/a5-13-07.html"><div class="eepListItem">a5-13-07</div></a><a class="rorg_f6" href="/eep/a5-13-08.html"><div class="eepListItem">a5-13-08</div></a><a class="rorg_f6" href="/eep/a5-13-10.html"><div class="eepListItem">a5-13-10</div></a><a class="rorg_f6" href="/eep/a5-14-01.html"><div class="eepListItem">a5-14-01</div></a><a class="rorg_f6" href="/eep/a5-14-02.html"><div class="eepListItem">a5-14-02</div></a><a class="rorg_f6" href="/eep/a5-14-03.html"><div class="eepListItem">a5-14-03</div></a><a class="rorg_f6" href="/eep/a5-14-04.html"><div class="eepListItem">a5-14-04</div></a><a class="rorg_f6" href="/eep/a5-14-05.html"><div class="eepListItem">a5-14-05</div></a><a class="rorg_f6" href="/eep/a5-14-06.html"><div class="eepListItem">a5-14-06</div></a><a class="rorg_f6" href="/eep/a5-20-01.html"><div class="eepListItem">a5-20-01</div></a><a class="rorg_f6" href="/eep/a5-20-02.html"><div class="eepListItem">a5-20-02</div></a><a class="rorg_f6" href="/eep/a5-20-03.html"><div class="eepListItem">a5-20-03</div></a><a class="rorg_f6" href="/eep/a5-20-04.html"><div class="eepListItem  selected">a5-20-04</div></a><a class="rorg_f6" href="/eep/a5-20-10.html"><div class="eepListItem">a5-20-10</div></a><a class="rorg_f6" href="/eep/a5-20-11.html"><div class="eepListItem">a5-20-11</div></a><a class="rorg_f6" href="/eep/a5-20-12.html"><div class="eepListItem">a5-20-12</div></a><a class="rorg_f6" href="/eep/a5-30-01.html"><div class="eepListItem">a5-30-01</div></a><a class="rorg_f6" href="/eep/a5-30-02.html"><div class="eepListItem">a5-30-02</div></a><a class="rorg_f6" href="/eep/a5-30-03.html"><div class="eepListItem">a5-30-03</div></a><a class="rorg_f6" href="/eep/a5-30-04.html"><div class="eepListItem">a5-30-04</div></a><a class="rorg_f6" href="/eep/a5-30-05.html"><div class="eepListItem">a5-30-05</div></a><a class="rorg_f6" href="/eep/a5-37-01.html"><div class="eepListItem">a5-37-01</div></a><a class="rorg_f6" href="/eep/a5-38-08.html"><div class="eepListItem">a5-38-08</div></a><a class="rorg_f6" href="/eep/a5-38-09.html"><div class="eepListItem">a5-38-09</div></a><a class="rorg_f6" href="/eep/a5-3f-00.html"><div class="eepListItem">a5-3f-00</div></a><a class="rorg_f6" href="/eep/a5-3f-7f.html"><div class="eepListItem">a5-3f-7f</div></a></div><div><h3>d2</h3><a class="rorg_f6" href="/eep/d2-00-01.html"><div class="eepListItem">d2-00-01</div></a><a class="rorg_f6" href="/eep/d2-01-00.html"><div class="eepListItem">d2-01-00</div></a><a class="rorg_f6" href="/eep/d2-01-01.html"><div class="eepListItem">d2-01-01</div></a><a class="rorg_f6" href="/eep/d2-01-02.html"><div class="eepListItem">d2-01-02</div></a><a class="rorg_f6" href="/eep/d2-01-03.html"><div class="eepListItem">d2-01-03</div></a><a class="rorg_f6" href="/eep/d2-01-04.html"><div class="eepListItem">d2-01-04</div></a><a class="rorg_f6" href="/eep/d2-01-05.html"><div class="eepListItem">d2-01-05</div></a><a class="rorg_f6" href="/eep/d2-01-06.html"><div class="eepListItem">d2-01-06</div></a><a class="rorg_f6" href="/eep/d2-01-07.html"><div class="eepListItem">d2-01-07</div></a><a class="rorg_f6" href="/eep/d2-01-08.html"><div class="eepListItem">d2-01-08</div></a><a class="rorg_f6" href="/eep/d2-01-09.html"><div class="eepListItem">d2-01-09</div></a><a class="rorg_f6" href="/eep/d2-01-0a.html"><div class="eepListItem">d2-01-0a</div></a><a class="rorg_f6" href="/eep/d2-01-0b.html"><div class="eepListItem">d2-01-0b</div></a><a class="rorg_f6" href="/eep/d2-01-0c.html"><div class="eepListItem">d2-01-0c</div></a><a class="rorg_f6" href="/eep/d2-01-0d.html"><div class="eepListItem">d2-01-0d</div></a><a class="rorg_f6" href="/eep/d2-01-0e.html"><div class="eepListItem">d2-01-0e</div></a><a class="rorg_f6" href="/eep/d2-01-0f.html"><div class="eepListItem">d2-01-0f</div></a><a class="rorg_f6" href="/eep/d2-01-10.html"><div class="eepListItem">d2-01-10</div></a><a class="rorg_f6" href="/eep/d2-01-11.html"><div class="eepListItem">d2-01-11</div></a><a class="rorg_f6" href="/eep/d2-01-12.html"><div class="eepListItem">d2-01-12</div></a><a class="rorg_f6" href="/eep/d2-02-00.html"><div class="eepListItem">d2-02-00</div></a><a class="rorg_f6" href="/eep/d2-02-01.html"><div class="eepListItem">d2-02-01</div></a><a class="rorg_f6" href="/eep/d2-02-02.html"><div class="eepListItem">d2-02-02</div></a><a class="rorg_f6" href="/eep/d2-03-00.html"><div class="eepListItem">d2-03-00</div></a><a class="rorg_f6" href="/eep/d2-03-10.html"><div class="eepListItem">d2-03-10</div></a><a class="rorg_f6" href="/eep/d2-03-20.html"><div class="eepListItem">d2-03-20</div></a><a class="rorg_f6" href="/eep/d2-04-00.html"><div class="eepListItem">d2-04-00</div></a><a class="rorg_f6" href="/eep/d2-04-01.html"><div class="eepListItem">d2-04-01</div></a><a class="rorg_f6" href="/eep/d2-04-02.html"><div class="eepListItem">d2-04-02</div></a><a class="rorg_f6" href="/eep/d2-04-03.html"><div class="eepListItem">d2-04-03</div></a><a class="rorg_f6" href="/eep/d2-04-04.html"><div class="eepListItem">d2-04-04</div></a><a class="rorg_f6" href="/eep/d2-04-05.html"><div class="eepListItem">d2-04-05</div></a><a class="rorg_f6" href="/eep/d2-04-06.html"><div class="eepListItem">d2-04-06</div></a><a class="rorg_f6" href="/eep/d2-04-07.html"><div class="eepListItem">d2-04-07</div></a><a class="rorg_f6" href="/eep/d2-04-08.html"><div class="eepListItem">d2-04-08</div></a><a class="rorg_f6" href="/eep/d2-04-09.html"><div class="eepListItem">d2-04-09</div></a><a class="rorg_f6" href="/eep/d2-04-10.html"><div class="eepListItem">d2-04-10</div></a><a class="rorg_f6" href="/eep/d2-04-1a.html"><div class="eepListItem">d2-04-1a</div></a><a class="rorg_f6" href="/eep/d2-04-1b.html"><div class="eepListItem">d2-04-1b</div></a><a class="rorg_f6" href="/eep/d2-04-1c.html"><div class="eepListItem">d2-04-1c</div></a><a class="rorg_f6" href="/eep/d2-04-1d.html"><div class="eepListItem">d2-04-1d</div></a><a class="rorg_f6" href="/eep/d2-04-1e.html"><div class="eepListItem">d2-04-1e</div></a><a class="rorg_f6" href="/eep/d2-05-00.html"><div class="eepListItem">d2-05-00</div></a><a class="rorg_f6" href="/eep/d2-06-01.html"><div class="eepListItem">d2-06-01</div></a><a class="rorg_f6" href="/eep/d2-10-00.html"><div class="eepListItem">d2-10-00</div></a><a class="rorg_f6" href="/eep/d2-10-01.html"><div class="eepListItem">d2-10-01</div></a><a class="rorg_f6" href="/eep/d2-10-02.html"><div class="eepListItem">d2-10-02</div></a><a class="rorg_f6" href="/eep/d2-11-01.html"><div class="eepListItem">d2-11-01</div></a><a class="rorg_f6" href="/eep/d2-11-02.html"><div class="eepListItem">d2-11-02</div></a><a class="rorg_f6" href="/eep/d2-11-03.html"><div class="eepListItem">d2-11-03</div></a><a class="rorg_f6" href="/eep/d2-11-04.html"><div class="eepListItem">d2-11-04</div></a><a class="rorg_f6" href="/eep/d2-11-05.html"><div class="eepListItem">d2-11-05</div></a><a class="rorg_f6" href="/eep/d2-11-06.html"><div class="eepListItem">d2-11-06</div></a><a class="rorg_f6" href="/eep/d2-11-07.html"><div class="eepListItem">d2-11-07</div></a><a class="rorg_f6" href="/eep/d2-11-08.html"><div class="eepListItem">d2-11-08</div></a><a class="rorg_f6" href="/eep/d2-20-00.html"><div class="eepListItem">d2-20-00</div></a><a class="rorg_f6" href="/eep/d2-20-01.html"><div class="eepListItem">d2-20-01</div></a><a class="rorg_f6" href="/eep/d2-20-02.html"><div class="eepListItem">d2-20-02</div></a><a class="rorg_f6" href="/eep/d2-30-00.html"><div class="eepListItem">d2-30-00</div></a><a class="rorg_f6" href="/eep/d2-30-01.html"><div class="eepListItem">d2-30-01</div></a><a class="rorg_f6" href="/eep/d2-30-02.html"><div class="eepListItem">d2-30-02</div></a><a class="rorg_f6" href="/eep/d2-30-03.html"><div class="eepListItem">d2-30-03</div></a><a class="rorg_f6" href="/eep/d2-30-04.html"><div class="eepListItem">d2-30-04</div></a><a class="rorg_f6" href="/eep/d2-30-05.html"><div class="eepListItem">d2-30-05</div></a><a class="rorg_f6" href="/eep/d2-30-06.html"><div class="eepListItem">d2-30-06</div></a><a class="rorg_f6" href="/eep/d2-31-00.html"><div class="eepListItem">d2-31-00</div></a><a class="rorg_f6" href="/eep/d2-31-01.html"><div class="eepListItem">d2-31-01</div></a><a class="rorg_f6" href="/eep/d2-32-00.html"><div class="eepListItem">d2-32-00</div></a><a class="rorg_f6" href="/eep/d2-32-01.html"><div class="eepListItem">d2-32-01</div></a><a class="rorg_f6" href="/eep/d2-32-02.html"><div class="eepListItem">d2-32-02</div></a><a class="rorg_f6" href="/eep/d2-40-00.html"><div class="eepListItem">d2-40-00</div></a><a class="rorg_f6" href="/eep/d2-40-01.html"><div class="eepListItem">d2-40-01</div></a><a class="rorg_f6" href="/eep/d2-50-00.html"><div class="eepListItem">d2-50-00</div></a><a class="rorg_f6" href="/eep/d2-50-01.html"><div class="eepListItem">d2-50-01</div></a><a class="rorg_f6" href="/eep/d2-a0-01.html"><div class="eepListItem">d2-a0-01</div></a></div></div><div id="content"><div class="card"><table class="eep_info"><tr><td>rorg</td><td>A5</td><td>4BS Telegram</td></tr><tr> <td>func</td><td>20</td><td>HVAC Components</td></tr><tr> <td>type</td><td>04</td><td>Heating Radiator Valve Actuating Drive with Feed and Room Temperature Measurement, Local Set Point Control and Display</td></tr></table><div class="submitter">submitted by  <a href="http://www.hora.de/">Holter Regelarmaturen GmbH &amp; Co. KG</a></div><div class="description">
+            <br/>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Description</span>
+            <br/>The following document describes the communication between a controller
+            and an intelligent heating radiator valve actuating drive with the following features:
+            <ul>
+            <li>Feed temperature measurement</li>
+            <br/>
+            <li>Room temperature measurement</li>
+            <br/>
+            <li>Current position feedback</li>
+            <br/>
+            <li>Display</li>
+            <br/>
+            <li>Button</li>
+            <br/>
+            <li>On device temperature set point selection</li>
+            <br/>
+            </ul>
+            In order to be able to process this information and control the actuator,
+            every command has been included in this document. Each customer can use
+            his own controller by implementing the EEP of this document.
+            <br/>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Data exchange</span>
+            <br/>Direction: bidirectional
+            <br/>Addressing: unicast (ADT)
+            <br/>Communication trigger: event- & time-triggered
+            <br/>Communication interval: can be configured by the controller
+            <br/>Trigger event: a trigger event occurs when the button is pressed
+            or the local set point is used
+            <br/>Tx delay: 550 ms is the maximum response time for Smart-Ack Devices
+            and 1100 ms for devices which use the 4BS teach-in method
+            <br/>Rx timeout: just 1 message per wake-up cycle
+            <br/>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Teach-in</span>
+            <br/>Teach-in method: Smart-Ack teach-in and 4BS teach-in Variation 3
+            <br/>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Security</span>
+            <br/>Encryption supported: no
+            <br/>Security level format: -
+            <br/>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Telegram Description of Direction 1</span>
+            (Transmit mode / Message from the actuator to the controller)
+            <br/>
+            <br/>
+            This direction initializes the communication, shares the needed
+            data and waits for an answer from the controller.
+            This allows the device to work in deep sleep mode the rest of the time.
+            <br/>
+            <br/>Each message from the actuator contains the following information:
+            <ul>
+            <li>Current Position (CP)
+            <br/>The current position is a feedback value from the actuator.
+            It indicates the actual per cent position of the valve.
+            The value 0 % means that the valve is completely closed and 100 %
+            completely open. The controller can use this information for the room
+            temperature regulation.</li>
+            </ul>
+            <ul><li>Temperature Set Point OR Feed Temperature (FTS)*
+            <br/>
+            * This byte is shared by the Temperature Set Point and the Feed
+            Temperature value. Only one of these values is sent in the same message.
+            Which value is transmitted is indicated by DB0.1 (TS bit).
+            <br/>
+            The feed temperature is the water temperature in the radiator input,
+            which can be useful for implementing several features in the home
+            automation system.
+            <br/>
+            The temperature set point is only sent when the user specifies a new
+            room temperature by using the local temperature set point on the device.
+            </li></ul>
+            <ul><li>Room Temperature (TMP) OR Failure Code (FC)*
+            <br/>
+            * This byte is shared by the Room Temperature and Failure Code Value.
+            Only one of these values is sent in the same message.
+            The value transmitted is indicated by DB0.0 (FL).
+            By default it is the room temperature.
+            <br/>
+            The room temperature is the ambient temperature of the place in which
+            the device is used and is measured by the actuator.
+            This value is transmitted if no error occurred.
+            <br/>
+            The Failure Code is transmitted instead of the Room Temperature
+            if an error occurs.
+            </li></ul>
+            <ul><li>Measurement Status (MST)
+            <br/>
+            The temperature measurements (room and feed temperature) can be
+            deactivated in order to reduce the energy consumption.
+            This can be specified only by the controller i.e. to implement
+            summer mode or to replace the internal room temperature measurement
+            of the actuator by an external one.
+            </li></ul>
+            <ul><li>Status Request (SRT)
+            <br/>
+            The status request bit can be used to ask the controller about its
+            status. If the controller does not send back the correct reply, the
+            actuator will start its own room temperature regulation.
+            With this feature, a frozen actuator would not interrupt the room
+            temperature regulation.
+            </li></ul>
+            <ul><li>Teach-in Bit (LRNB)
+            <br/>
+            For establishing the radio link between the controller and the actuator,
+            a teachin message has to be sent from the actuator to the controller.
+            If the binary value 0 is transmitted, the message will be identified
+            as a teach-in one and will allow the controller to receive the
+            EnOcean-ID of the actuator.
+            </li></ul>
+            <ul><li>Button Lock Status (BLS)
+            <br/>
+            The button lock status can be set by the controller. This enables or
+            disables the manual room temperature selection. If locked, the manual
+            room temperature selection on the actuator will be disabled and the
+            user will be notified with a symbol on the display.
+            </li></ul>
+            <ul><li>Temperature Selection (TS)
+            <br/>
+            If the user specifies a temperature set point manually on the device,
+            this will be sent to the controller and indicated on the temperature
+            selection field (TS). It can indicate that the field FTS contains the
+            temperature set point (binary value = 1) or the feed temperature
+            (binary value = 0).
+            </li></ul>
+            <ul><li>Failure (FL)
+            <br/>
+            Indicates the occurrence of a failure. The room temperature value is
+            replaced by the failure code if the bit FL has the binary value 1.
+            </li></ul>
+            <br/>
+            <span style="border-bottom:2px groove #000000;">Telegram Description of Direction 2</span>
+            (Receive mode / Commands from the controller to the actuator)
+            <br/>
+            <br/>
+            The messages from the controller to the actuator are sent in this direction.
+            A message in this direction has to be sent after receiving a message from
+            the actuator, in order to achieve a successful communication.
+            If the controller message is not received by the actuator in a specific
+            time after a direction 1 message, no information will be received by
+            the actuator. The time that the actuator will wait for a reply is defined
+            by the Smart-Ack Teach-In process. For controllers which cannot use
+            Smart-Ack, the 4BS Teach-in Variation 3 has to be used, with a maximum
+            response time of 1100 ms.
+            <br/>
+            <br/>Each message from the controller contains the following information:
+            <ul><li>
+            Valve Position (POS)
+            <br/>
+            The valve position is a set point position for the valve.
+            It indicates the per cent position of the valve, which the actuator
+            has to reach. The value 0 % means that the valve is completely closed
+            and 100 % completely open. The controller should be able to regulate
+            the room temperature by adjusting this value.
+            </li></ul>
+            <ul><li>
+            Temperature Set Point (TSP)
+            <br/>
+            The controller can send the temperature set point to the actuator in
+            order to allow the user to see the actual specified temperature in
+            the device display. This value does not affect room temperature regulation.
+            </li></ul>
+            <ul><li>
+            Measurement Control (MC)
+            <br/>
+            The temperature measurements (room and feed temperature) can be
+            deactivated in order to reduce energy consumption. This can be specified
+            only by the controller i.e. to implement summer mode or to replace
+            the internal room temperature measurement by the device with an
+            external one. The measurement control bit enables the controller to
+            activate or deactivate the measurements.
+            </li></ul>
+            <ul><li>
+            Wake-up Cycle (WUC)
+            <br/>
+            To save energy, the actuator works in deep sleep mode the most of the
+            time. Nevertheless it has to wake up to communicate with the controller
+            and to reach the valve position specified by the controller.
+            The longer the actuator remains in deep sleep mode, the more energy
+            efficient will be your batteries. If fast response is required, the
+            actuator has to communicate more frequently with the controller and
+            that is why it should use a shorter wake-up cycle. If a fast room
+            temperature control is not required, the wake-up cycle should be set
+            by the controller as long as possible.
+            </li></ul>
+            <ul><li>
+            Display Orientation (DSO)
+            <br/>
+            The heater valves can be installed in different directions.
+            That is why it can be useful to have the option to choose the fitting
+            display orientation. This feature makes reading the display easier.
+            </li></ul>
+            <ul><li>
+            Teach-in Bit (LRNB)
+            <br/>
+            For establishing a radio link between the controller and the actuator,
+            a teach-in telegram has to be sent from the controller to the actuator.
+            If the binary value 0 is transmitted, the message will be identified
+            as a teach-in one and will allow the device to receive the EnOcean-ID
+            from the controller.
+            </li></ul>
+            <ul><li>
+            Button Lock Control (BLS)
+            <br/>
+            The button lock status can be set by the controller. This enables or
+            disables the manual room temperature selection. If locked, the manual
+            room temperature selection on the actuator will be disabled and the
+            user will be notified with a symbol on the display.
+            </li></ul>
+            <ul><li>
+            Service Command (SER)
+            <br/>
+            In order to adapt the actuator to a new valve, the controller can
+            order the execution of some functions of the actuator:
+            <br/>
+            - run initialisation: This function has to be executed for adapting
+            the actuator to the length of the valve stroke.
+            <br/>
+            - open valve: To facilitate the installation or maintenance of the
+            valve, the actuator can open the valve completely.
+            After completely opening the valve it is necessary to run the initialisation.
+            <br/>
+            - close valve: Completely close the valve.
+            </li></ul></div></div><div class="card"><h3>Direction 1</h3><div id="case_0telegram"></div><table class="data_table"><tr><th>offset</th><th>size</th><th>Bit mask</th></tr><tr><td colspan="3">Current Position</td></tr><tr><td>0</td><td>8</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_set"/><rect x="4" y="0" width="4" height="100%" class="bit_set"/><rect x="8" y="0" width="4" height="100%" class="bit_set"/><rect x="12" y="0" width="4" height="100%" class="bit_set"/><rect x="16" y="0" width="4" height="100%" class="bit_set"/><rect x="20" y="0" width="4" height="100%" class="bit_set"/><rect x="24" y="0" width="4" height="100%" class="bit_set"/><rect x="28" y="0" width="4" height="100%" class="bit_set"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <table><tr><td>Range</td><td>0</td><td>100</td></tr><tr><td>Scale</td><td>0</td><td>100</td></tr></table></td></tr><tr><td colspan="3">Feed Temperature OR Temperature Set Point</td></tr><tr><td>8</td><td>8</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_set"/><rect x="36" y="0" width="4" height="100%" class="bit_set"/><rect x="40" y="0" width="4" height="100%" class="bit_set"/><rect x="44" y="0" width="4" height="100%" class="bit_set"/><rect x="48" y="0" width="4" height="100%" class="bit_set"/><rect x="52" y="0" width="4" height="100%" class="bit_set"/><rect x="56" y="0" width="4" height="100%" class="bit_set"/><rect x="60" y="0" width="4" height="100%" class="bit_set"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <table><tr><td>Range</td><td>0</td><td>255</td></tr><tr><td>Scale</td><td>20 .. 80</td><td>10 .. 30</td></tr></table></td></tr><tr><td colspan="3">Room Temperature OR Failure Code</td></tr><tr><td>16</td><td>8</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_set"/><rect x="68" y="0" width="4" height="100%" class="bit_set"/><rect x="72" y="0" width="4" height="100%" class="bit_set"/><rect x="76" y="0" width="4" height="100%" class="bit_set"/><rect x="80" y="0" width="4" height="100%" class="bit_set"/><rect x="84" y="0" width="4" height="100%" class="bit_set"/><rect x="88" y="0" width="4" height="100%" class="bit_set"/><rect x="92" y="0" width="4" height="100%" class="bit_set"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0 - 255</td><td></td></tr><tr><td>00 ... 16</td><td>Reserved</td></tr><tr><td>17</td><td>Measurement error</td></tr><tr><td>18</td><td>Battery empty</td></tr><tr><td>19</td><td>Reserved</td></tr><tr><td>20</td><td>Frost protection</td></tr><tr><td>21 ... 32</td><td>Reserved</td></tr><tr><td>33</td><td>Blocked valve</td></tr><tr><td>34 ... 35</td><td>Reserved</td></tr><tr><td>36</td><td>End point detection error</td></tr><tr><td>37 ... 39</td><td>Reserved</td></tr><tr><td>40</td><td>No valve</td></tr><tr><td>41 ... 48</td><td>Reserved</td></tr><tr><td>49</td><td>Not taught in</td></tr><tr><td>50 ... 52</td><td>Reserved</td></tr><tr><td>53</td><td>No response from controller</td></tr><tr><td>54</td><td>Teach-in error</td></tr><tr><td>55 ... 255</td><td>Reserved</td></tr></table></td></tr><tr><td colspan="3">Measurement Status</td></tr><tr><td>24</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_set"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Active</td></tr><tr><td>1</td><td>Inactive</td></tr></table></td></tr><tr><td colspan="3">Status Request</td></tr><tr><td>25</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_set"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>No change</td></tr><tr><td>1</td><td>Status requested</td></tr></table></td></tr><tr class="reserved"><td colspan="3">unused</td></tr><tr class="reserved"><td>26</td><td>2</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_set"/><rect x="108" y="0" width="4" height="100%" class="bit_set"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr class="reserved"><td colspan="3"> </td></tr><tr><td colspan="3">LRN Bit</td></tr><tr><td>28</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_set"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Teach-in telegram</td></tr><tr><td>1</td><td>Data telegram</td></tr></table></td></tr><tr><td colspan="3">Button Lock Status</td></tr><tr><td>29</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_set"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Unlocked</td></tr><tr><td>1</td><td>Locked</td></tr></table></td></tr><tr><td colspan="3">Temperature Selection</td></tr><tr><td>30</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_set"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Feed temperature</td></tr><tr><td>1</td><td>Temperature set point</td></tr></table></td></tr><tr><td colspan="3">Failure</td></tr><tr><td>31</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_set"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>No failure (TMP is transmitted)</td></tr><tr><td>1</td><td>failure (FC is transmitted)</td></tr></table></td></tr></table></div><div class="card"><h3>Direction 2</h3><div id="case_1telegram"></div><table class="data_table"><tr><th>offset</th><th>size</th><th>Bit mask</th></tr><tr><td colspan="3">Valve Position</td></tr><tr><td>0</td><td>8</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_set"/><rect x="4" y="0" width="4" height="100%" class="bit_set"/><rect x="8" y="0" width="4" height="100%" class="bit_set"/><rect x="12" y="0" width="4" height="100%" class="bit_set"/><rect x="16" y="0" width="4" height="100%" class="bit_set"/><rect x="20" y="0" width="4" height="100%" class="bit_set"/><rect x="24" y="0" width="4" height="100%" class="bit_set"/><rect x="28" y="0" width="4" height="100%" class="bit_set"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <table><tr><td>Range</td><td>0</td><td>100</td></tr><tr><td>Scale</td><td>0</td><td>100</td></tr></table></td></tr><tr><td colspan="3">Temperature Set Point</td></tr><tr><td>8</td><td>8</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_set"/><rect x="36" y="0" width="4" height="100%" class="bit_set"/><rect x="40" y="0" width="4" height="100%" class="bit_set"/><rect x="44" y="0" width="4" height="100%" class="bit_set"/><rect x="48" y="0" width="4" height="100%" class="bit_set"/><rect x="52" y="0" width="4" height="100%" class="bit_set"/><rect x="56" y="0" width="4" height="100%" class="bit_set"/><rect x="60" y="0" width="4" height="100%" class="bit_set"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <table><tr><td>Range</td><td>0</td><td>255</td></tr><tr><td>Scale</td><td>10</td><td>30</td></tr></table></td></tr><tr class="reserved"><td colspan="3">unused</td></tr><tr class="reserved"><td>16</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_set"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr class="reserved"><td colspan="3"> </td></tr><tr><td colspan="3">Measurement Control</td></tr><tr><td>17</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_set"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Enable</td></tr><tr><td>1</td><td>Disable</td></tr></table></td></tr><tr><td colspan="3">Wake-up Cycle</td></tr><tr><td>18</td><td>6</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_set"/><rect x="76" y="0" width="4" height="100%" class="bit_set"/><rect x="80" y="0" width="4" height="100%" class="bit_set"/><rect x="84" y="0" width="4" height="100%" class="bit_set"/><rect x="88" y="0" width="4" height="100%" class="bit_set"/><rect x="92" y="0" width="4" height="100%" class="bit_set"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>10 sec</td></tr><tr><td>1</td><td>60 sec</td></tr><tr><td>2</td><td>90 sec</td></tr><tr><td>3</td><td>120 sec</td></tr><tr><td>4</td><td>150 sec</td></tr><tr><td>5</td><td>180 sec</td></tr><tr><td>6</td><td>210 sec</td></tr><tr><td>7</td><td>240 sec</td></tr><tr><td>8</td><td>270 sec</td></tr><tr><td>9</td><td>300 sec (5 min)</td></tr><tr><td>10</td><td>330 sec</td></tr><tr><td>11</td><td>360 sec</td></tr><tr><td>12</td><td>390 sec</td></tr><tr><td>13</td><td>420 sec</td></tr><tr><td>14</td><td>450 sec</td></tr><tr><td>15</td><td>480 sec</td></tr><tr><td>16</td><td>510 sec</td></tr><tr><td>17</td><td>540 sec</td></tr><tr><td>18</td><td>570 sec</td></tr><tr><td>19</td><td>600 sec (10 min)</td></tr><tr><td>20</td><td>630 sec</td></tr><tr><td>21</td><td>660 sec</td></tr><tr><td>22</td><td>690 sec</td></tr><tr><td>23</td><td>720 sec</td></tr><tr><td>24</td><td>750 sec</td></tr><tr><td>25</td><td>780 sec</td></tr><tr><td>26</td><td>810 sec</td></tr><tr><td>27</td><td>840 sec</td></tr><tr><td>28</td><td>870 sec</td></tr><tr><td>29</td><td>900 sec (15 min)</td></tr><tr><td>30</td><td>930 sec</td></tr><tr><td>31</td><td>960 sec</td></tr><tr><td>32</td><td>990 sec</td></tr><tr><td>33</td><td>1020 sec</td></tr><tr><td>34</td><td>1050 sec</td></tr><tr><td>35</td><td>1080 sec</td></tr><tr><td>36</td><td>1110 sec</td></tr><tr><td>37</td><td>1140 sec</td></tr><tr><td>38</td><td>1170 sec</td></tr><tr><td>39</td><td>1200 sec (20 min)</td></tr><tr><td>40</td><td>1230 sec</td></tr><tr><td>41</td><td>1260 sec</td></tr><tr><td>42</td><td>1290 sec</td></tr><tr><td>43</td><td>1320 sec</td></tr><tr><td>44</td><td>1350 sec</td></tr><tr><td>45</td><td>1380 sec</td></tr><tr><td>46</td><td>1410 sec</td></tr><tr><td>47</td><td>1440 sec</td></tr><tr><td>48</td><td>1470 sec</td></tr><tr><td>49</td><td>1500 sec (25 min)</td></tr><tr><td>50</td><td>3 hrs</td></tr><tr><td>51</td><td>6 hrs</td></tr><tr><td>52</td><td>9 hrs</td></tr><tr><td>53</td><td>12 hrs</td></tr><tr><td>54</td><td>15 hrs</td></tr><tr><td>55</td><td>18 hrs</td></tr><tr><td>56</td><td>21 hrs</td></tr><tr><td>57</td><td>24 hrs</td></tr><tr><td>58</td><td>27 hrs</td></tr><tr><td>59</td><td>30 hrs</td></tr><tr><td>60</td><td>33 hrs</td></tr><tr><td>61</td><td>36 hrs</td></tr><tr><td>62</td><td>39 hrs</td></tr><tr><td>63</td><td>42 hrs (max)</td></tr></table></td></tr><tr class="reserved"><td colspan="3">unused</td></tr><tr class="reserved"><td>24</td><td>2</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_set"/><rect x="100" y="0" width="4" height="100%" class="bit_set"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr class="reserved"><td colspan="3"> </td></tr><tr><td colspan="3">Display Orientation</td></tr><tr><td>26</td><td>2</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_set"/><rect x="108" y="0" width="4" height="100%" class="bit_set"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>0°</td></tr><tr><td>1</td><td>90°</td></tr><tr><td>2</td><td>180°</td></tr><tr><td>3</td><td>270°</td></tr></table></td></tr><tr><td colspan="3">LRN Bit</td></tr><tr><td>28</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_set"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Teach-in telegram</td></tr><tr><td>1</td><td>Data telegram</td></tr></table></td></tr><tr><td colspan="3">Button Lock Control</td></tr><tr><td>29</td><td>1</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_set"/><rect x="120" y="0" width="4" height="100%" class="bit_unset"/><rect x="124" y="0" width="4" height="100%" class="bit_unset"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>Unlocked</td></tr><tr><td>1</td><td>Locked</td></tr></table></td></tr><tr><td colspan="3">Service Command</td></tr><tr><td>30</td><td>2</td><td><svg width="128px" height="1em"><rect x="0" y="0" width="4" height="100%" class="bit_unset"/><rect x="4" y="0" width="4" height="100%" class="bit_unset"/><rect x="8" y="0" width="4" height="100%" class="bit_unset"/><rect x="12" y="0" width="4" height="100%" class="bit_unset"/><rect x="16" y="0" width="4" height="100%" class="bit_unset"/><rect x="20" y="0" width="4" height="100%" class="bit_unset"/><rect x="24" y="0" width="4" height="100%" class="bit_unset"/><rect x="28" y="0" width="4" height="100%" class="bit_unset"/><rect x="32" y="0" width="4" height="100%" class="bit_unset"/><rect x="36" y="0" width="4" height="100%" class="bit_unset"/><rect x="40" y="0" width="4" height="100%" class="bit_unset"/><rect x="44" y="0" width="4" height="100%" class="bit_unset"/><rect x="48" y="0" width="4" height="100%" class="bit_unset"/><rect x="52" y="0" width="4" height="100%" class="bit_unset"/><rect x="56" y="0" width="4" height="100%" class="bit_unset"/><rect x="60" y="0" width="4" height="100%" class="bit_unset"/><rect x="64" y="0" width="4" height="100%" class="bit_unset"/><rect x="68" y="0" width="4" height="100%" class="bit_unset"/><rect x="72" y="0" width="4" height="100%" class="bit_unset"/><rect x="76" y="0" width="4" height="100%" class="bit_unset"/><rect x="80" y="0" width="4" height="100%" class="bit_unset"/><rect x="84" y="0" width="4" height="100%" class="bit_unset"/><rect x="88" y="0" width="4" height="100%" class="bit_unset"/><rect x="92" y="0" width="4" height="100%" class="bit_unset"/><rect x="96" y="0" width="4" height="100%" class="bit_unset"/><rect x="100" y="0" width="4" height="100%" class="bit_unset"/><rect x="104" y="0" width="4" height="100%" class="bit_unset"/><rect x="108" y="0" width="4" height="100%" class="bit_unset"/><rect x="112" y="0" width="4" height="100%" class="bit_unset"/><rect x="116" y="0" width="4" height="100%" class="bit_unset"/><rect x="120" y="0" width="4" height="100%" class="bit_set"/><rect x="124" y="0" width="4" height="100%" class="bit_set"/></svg></td></tr><tr><td colspan="3"> <h3>Enum</h3><table class="enum_table"><tr><td>0</td><td>No change</td></tr><tr><td>1</td><td>Open valve</td></tr><tr><td>2</td><td>Run initialisation</td></tr><tr><td>3</td><td>Close valve</td></tr></table></td></tr></table></div><div class="card raw"><pre>{
+  "number": "0x04",
+  "title": "Heating Radiator Valve Actuating Drive with Feed and Room Temperature Measurement, Local Set Point Control and Display",
+  "status": "released",
+  "description": "\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Description</span>\n            <br/>The following document describes the communication between a controller\n            and an intelligent heating radiator valve actuating drive with the following features:\n            <ul>\n            <li>Feed temperature measurement</li>\n            <br/>\n            <li>Room temperature measurement</li>\n            <br/>\n            <li>Current position feedback</li>\n            <br/>\n            <li>Display</li>\n            <br/>\n            <li>Button</li>\n            <br/>\n            <li>On device temperature set point selection</li>\n            <br/>\n            </ul>\n            In order to be able to process this information and control the actuator,\n            every command has been included in this document. Each customer can use\n            his own controller by implementing the EEP of this document.\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Data exchange</span>\n            <br/>Direction: bidirectional\n            <br/>Addressing: unicast (ADT)\n            <br/>Communication trigger: event- & time-triggered\n            <br/>Communication interval: can be configured by the controller\n            <br/>Trigger event: a trigger event occurs when the button is pressed\n            or the local set point is used\n            <br/>Tx delay: 550 ms is the maximum response time for Smart-Ack Devices\n            and 1100 ms for devices which use the 4BS teach-in method\n            <br/>Rx timeout: just 1 message per wake-up cycle\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Teach-in</span>\n            <br/>Teach-in method: Smart-Ack teach-in and 4BS teach-in Variation 3\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Security</span>\n            <br/>Encryption supported: no\n            <br/>Security level format: -\n            <br/>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Telegram Description of Direction 1</span>\n            (Transmit mode / Message from the actuator to the controller)\n            <br/>\n            <br/>\n            This direction initializes the communication, shares the needed\n            data and waits for an answer from the controller.\n            This allows the device to work in deep sleep mode the rest of the time.\n            <br/>\n            <br/>Each message from the actuator contains the following information:\n            <ul>\n            <li>Current Position (CP)\n            <br/>The current position is a feedback value from the actuator.\n            It indicates the actual per cent position of the valve.\n            The value 0 % means that the valve is completely closed and 100 %\n            completely open. The controller can use this information for the room\n            temperature regulation.</li>\n            </ul>\n            <ul><li>Temperature Set Point OR Feed Temperature (FTS)*\n            <br/>\n            * This byte is shared by the Temperature Set Point and the Feed\n            Temperature value. Only one of these values is sent in the same message.\n            Which value is transmitted is indicated by DB0.1 (TS bit).\n            <br/>\n            The feed temperature is the water temperature in the radiator input,\n            which can be useful for implementing several features in the home\n            automation system.\n            <br/>\n            The temperature set point is only sent when the user specifies a new\n            room temperature by using the local temperature set point on the device.\n            </li></ul>\n            <ul><li>Room Temperature (TMP) OR Failure Code (FC)*\n            <br/>\n            * This byte is shared by the Room Temperature and Failure Code Value.\n            Only one of these values is sent in the same message.\n            The value transmitted is indicated by DB0.0 (FL).\n            By default it is the room temperature.\n            <br/>\n            The room temperature is the ambient temperature of the place in which\n            the device is used and is measured by the actuator.\n            This value is transmitted if no error occurred.\n            <br/>\n            The Failure Code is transmitted instead of the Room Temperature\n            if an error occurs.\n            </li></ul>\n            <ul><li>Measurement Status (MST)\n            <br/>\n            The temperature measurements (room and feed temperature) can be\n            deactivated in order to reduce the energy consumption.\n            This can be specified only by the controller i.e. to implement\n            summer mode or to replace the internal room temperature measurement\n            of the actuator by an external one.\n            </li></ul>\n            <ul><li>Status Request (SRT)\n            <br/>\n            The status request bit can be used to ask the controller about its\n            status. If the controller does not send back the correct reply, the\n            actuator will start its own room temperature regulation.\n            With this feature, a frozen actuator would not interrupt the room\n            temperature regulation.\n            </li></ul>\n            <ul><li>Teach-in Bit (LRNB)\n            <br/>\n            For establishing the radio link between the controller and the actuator,\n            a teachin message has to be sent from the actuator to the controller.\n            If the binary value 0 is transmitted, the message will be identified\n            as a teach-in one and will allow the controller to receive the\n            EnOcean-ID of the actuator.\n            </li></ul>\n            <ul><li>Button Lock Status (BLS)\n            <br/>\n            The button lock status can be set by the controller. This enables or\n            disables the manual room temperature selection. If locked, the manual\n            room temperature selection on the actuator will be disabled and the\n            user will be notified with a symbol on the display.\n            </li></ul>\n            <ul><li>Temperature Selection (TS)\n            <br/>\n            If the user specifies a temperature set point manually on the device,\n            this will be sent to the controller and indicated on the temperature\n            selection field (TS). It can indicate that the field FTS contains the\n            temperature set point (binary value = 1) or the feed temperature\n            (binary value = 0).\n            </li></ul>\n            <ul><li>Failure (FL)\n            <br/>\n            Indicates the occurrence of a failure. The room temperature value is\n            replaced by the failure code if the bit FL has the binary value 1.\n            </li></ul>\n            <br/>\n            <span style=\"border-bottom:2px groove #000000;\">Telegram Description of Direction 2</span>\n            (Receive mode / Commands from the controller to the actuator)\n            <br/>\n            <br/>\n            The messages from the controller to the actuator are sent in this direction.\n            A message in this direction has to be sent after receiving a message from\n            the actuator, in order to achieve a successful communication.\n            If the controller message is not received by the actuator in a specific\n            time after a direction 1 message, no information will be received by\n            the actuator. The time that the actuator will wait for a reply is defined\n            by the Smart-Ack Teach-In process. For controllers which cannot use\n            Smart-Ack, the 4BS Teach-in Variation 3 has to be used, with a maximum\n            response time of 1100 ms.\n            <br/>\n            <br/>Each message from the controller contains the following information:\n            <ul><li>\n            Valve Position (POS)\n            <br/>\n            The valve position is a set point position for the valve.\n            It indicates the per cent position of the valve, which the actuator\n            has to reach. The value 0 % means that the valve is completely closed\n            and 100 % completely open. The controller should be able to regulate\n            the room temperature by adjusting this value.\n            </li></ul>\n            <ul><li>\n            Temperature Set Point (TSP)\n            <br/>\n            The controller can send the temperature set point to the actuator in\n            order to allow the user to see the actual specified temperature in\n            the device display. This value does not affect room temperature regulation.\n            </li></ul>\n            <ul><li>\n            Measurement Control (MC)\n            <br/>\n            The temperature measurements (room and feed temperature) can be\n            deactivated in order to reduce energy consumption. This can be specified\n            only by the controller i.e. to implement summer mode or to replace\n            the internal room temperature measurement by the device with an\n            external one. The measurement control bit enables the controller to\n            activate or deactivate the measurements.\n            </li></ul>\n            <ul><li>\n            Wake-up Cycle (WUC)\n            <br/>\n            To save energy, the actuator works in deep sleep mode the most of the\n            time. Nevertheless it has to wake up to communicate with the controller\n            and to reach the valve position specified by the controller.\n            The longer the actuator remains in deep sleep mode, the more energy\n            efficient will be your batteries. If fast response is required, the\n            actuator has to communicate more frequently with the controller and\n            that is why it should use a shorter wake-up cycle. If a fast room\n            temperature control is not required, the wake-up cycle should be set\n            by the controller as long as possible.\n            </li></ul>\n            <ul><li>\n            Display Orientation (DSO)\n            <br/>\n            The heater valves can be installed in different directions.\n            That is why it can be useful to have the option to choose the fitting\n            display orientation. This feature makes reading the display easier.\n            </li></ul>\n            <ul><li>\n            Teach-in Bit (LRNB)\n            <br/>\n            For establishing a radio link between the controller and the actuator,\n            a teach-in telegram has to be sent from the controller to the actuator.\n            If the binary value 0 is transmitted, the message will be identified\n            as a teach-in one and will allow the device to receive the EnOcean-ID\n            from the controller.\n            </li></ul>\n            <ul><li>\n            Button Lock Control (BLS)\n            <br/>\n            The button lock status can be set by the controller. This enables or\n            disables the manual room temperature selection. If locked, the manual\n            room temperature selection on the actuator will be disabled and the\n            user will be notified with a symbol on the display.\n            </li></ul>\n            <ul><li>\n            Service Command (SER)\n            <br/>\n            In order to adapt the actuator to a new valve, the controller can\n            order the execution of some functions of the actuator:\n            <br/>\n            - run initialisation: This function has to be executed for adapting\n            the actuator to the length of the valve stroke.\n            <br/>\n            - open valve: To facilitate the installation or maintenance of the\n            valve, the actuator can open the valve completely.\n            After completely opening the valve it is necessary to run the initialisation.\n            <br/>\n            - close valve: Completely close the valve.\n            </li></ul>",
+  "case": [
+    {
+      "direction": "1",
+      "condition": {
+        "direction": "1"
+      },
+      "datafield": [
+        {
+          "data": "Current Position",
+          "shortcut": "CP",
+          "description": "Current valve position",
+          "info": "",
+          "bitoffs": "0",
+          "bitsize": "8",
+          "range": {
+            "min": "0",
+            "max": "100"
+          },
+          "scale": {
+            "min": "0",
+            "max": "100"
+          },
+          "unit": "%"
+        },
+        {
+          "data": "Feed Temperature OR Temperature Set Point",
+          "shortcut": "FTS",
+          "description": "Either current feed temperature value or temperature\n              set point (defined by DB0.1)",
+          "info": "",
+          "bitoffs": "8",
+          "bitsize": "8",
+          "range": {
+            "min": "0",
+            "max": "255"
+          },
+          "scale": {
+            "min": "20 .. 80",
+            "max": "10 .. 30"
+          },
+          "unit": "°C"
+        },
+        {
+          "data": "Room Temperature OR Failure Code",
+          "shortcut": "TMPFC",
+          "description": "Current room temperature value (10...30°C) OR Failure Code (Enum)",
+          "info": {},
+          "bitoffs": "16",
+          "bitsize": "8",
+          "enum": {
+            "item": [
+              {
+                "min": "0",
+                "max": "255",
+                "scale": {
+                  "min": "10",
+                  "max": "30"
+                },
+                "unit": "°C"
+              },
+              {
+                "value": "00 ... 16",
+                "description": "Reserved"
+              },
+              {
+                "value": "17",
+                "description": "Measurement error"
+              },
+              {
+                "value": "18",
+                "description": "Battery empty"
+              },
+              {
+                "value": "19",
+                "description": "Reserved"
+              },
+              {
+                "value": "20",
+                "description": "Frost protection"
+              },
+              {
+                "value": "21 ... 32",
+                "description": "Reserved"
+              },
+              {
+                "value": "33",
+                "description": "Blocked valve"
+              },
+              {
+                "value": "34 ... 35",
+                "description": "Reserved"
+              },
+              {
+                "value": "36",
+                "description": "End point detection error"
+              },
+              {
+                "value": "37 ... 39",
+                "description": "Reserved"
+              },
+              {
+                "value": "40",
+                "description": "No valve"
+              },
+              {
+                "value": "41 ... 48",
+                "description": "Reserved"
+              },
+              {
+                "value": "49",
+                "description": "Not taught in"
+              },
+              {
+                "value": "50 ... 52",
+                "description": "Reserved"
+              },
+              {
+                "value": "53",
+                "description": "No response from controller"
+              },
+              {
+                "value": "54",
+                "description": "Teach-in error"
+              },
+              {
+                "value": "55 ... 255",
+                "description": "Reserved"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Measurement Status",
+          "shortcut": "MST",
+          "description": "Shows if the temperature measurement (feed temperature\n              and room temperature) is active",
+          "bitoffs": "24",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Active"
+              },
+              {
+                "value": "1",
+                "description": "Inactive"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Status Request",
+          "shortcut": "STR",
+          "description": "Request for status from the controller",
+          "bitoffs": "25",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "No change"
+              },
+              {
+                "value": "1",
+                "description": "Status requested"
+              }
+            ]
+          }
+        },
+        {
+          "reserved": {},
+          "bitoffs": "26",
+          "bitsize": "2"
+        },
+        {
+          "data": "LRN Bit",
+          "shortcut": "LRNB",
+          "description": "LRN Bit",
+          "bitoffs": "28",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Teach-in telegram"
+              },
+              {
+                "value": "1",
+                "description": "Data telegram"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Button Lock Status",
+          "shortcut": "BLS",
+          "description": "Shows if all buttons on the actuator are locked",
+          "bitoffs": "29",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Unlocked"
+              },
+              {
+                "value": "1",
+                "description": "Locked"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Temperature Selection",
+          "shortcut": "TS",
+          "description": "Defines which temperature value is transmitted in DB2",
+          "bitoffs": "30",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Feed temperature"
+              },
+              {
+                "value": "1",
+                "description": "Temperature set point"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Failure",
+          "shortcut": "FL",
+          "description": "A failure occurred, see DB1.7-DB1.0 for Failure Code",
+          "bitoffs": "31",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "No failure (TMP is transmitted)"
+              },
+              {
+                "value": "1",
+                "description": "failure (FC is transmitted)"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "direction": "2",
+      "condition": {
+        "direction": "2"
+      },
+      "datafield": [
+        {
+          "data": "Valve Position",
+          "shortcut": "POS",
+          "description": "Valve position",
+          "info": {},
+          "bitoffs": "0",
+          "bitsize": "8",
+          "range": {
+            "min": "0",
+            "max": "100"
+          },
+          "scale": {
+            "min": "0",
+            "max": "100"
+          },
+          "unit": "%"
+        },
+        {
+          "data": "Temperature Set Point",
+          "shortcut": "TSP",
+          "description": "Temperature set point",
+          "info": {},
+          "bitoffs": "8",
+          "bitsize": "8",
+          "range": {
+            "min": "0",
+            "max": "255"
+          },
+          "scale": {
+            "min": "10",
+            "max": "30"
+          },
+          "unit": "°C"
+        },
+        {
+          "reserved": {},
+          "bitoffs": "16",
+          "bitsize": "1"
+        },
+        {
+          "data": "Measurement Control",
+          "shortcut": "MC",
+          "description": "Control the temperature measurement (feed temperature\n              + room temperature)",
+          "bitoffs": "17",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Enable"
+              },
+              {
+                "value": "1",
+                "description": "Disable"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Wake-up Cycle",
+          "shortcut": "WUC",
+          "description": "Defines the cyclic wake-up time",
+          "bitoffs": "18",
+          "bitsize": "6",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "10 sec"
+              },
+              {
+                "value": "1",
+                "description": "60 sec"
+              },
+              {
+                "value": "2",
+                "description": "90 sec"
+              },
+              {
+                "value": "3",
+                "description": "120 sec"
+              },
+              {
+                "value": "4",
+                "description": "150 sec"
+              },
+              {
+                "value": "5",
+                "description": "180 sec"
+              },
+              {
+                "value": "6",
+                "description": "210 sec"
+              },
+              {
+                "value": "7",
+                "description": "240 sec"
+              },
+              {
+                "value": "8",
+                "description": "270 sec"
+              },
+              {
+                "value": "9",
+                "description": "300 sec (5 min)"
+              },
+              {
+                "value": "10",
+                "description": "330 sec"
+              },
+              {
+                "value": "11",
+                "description": "360 sec"
+              },
+              {
+                "value": "12",
+                "description": "390 sec"
+              },
+              {
+                "value": "13",
+                "description": "420 sec"
+              },
+              {
+                "value": "14",
+                "description": "450 sec"
+              },
+              {
+                "value": "15",
+                "description": "480 sec"
+              },
+              {
+                "value": "16",
+                "description": "510 sec"
+              },
+              {
+                "value": "17",
+                "description": "540 sec"
+              },
+              {
+                "value": "18",
+                "description": "570 sec"
+              },
+              {
+                "value": "19",
+                "description": "600 sec (10 min)"
+              },
+              {
+                "value": "20",
+                "description": "630 sec"
+              },
+              {
+                "value": "21",
+                "description": "660 sec"
+              },
+              {
+                "value": "22",
+                "description": "690 sec"
+              },
+              {
+                "value": "23",
+                "description": "720 sec"
+              },
+              {
+                "value": "24",
+                "description": "750 sec"
+              },
+              {
+                "value": "25",
+                "description": "780 sec"
+              },
+              {
+                "value": "26",
+                "description": "810 sec"
+              },
+              {
+                "value": "27",
+                "description": "840 sec"
+              },
+              {
+                "value": "28",
+                "description": "870 sec"
+              },
+              {
+                "value": "29",
+                "description": "900 sec (15 min)"
+              },
+              {
+                "value": "30",
+                "description": "930 sec"
+              },
+              {
+                "value": "31",
+                "description": "960 sec"
+              },
+              {
+                "value": "32",
+                "description": "990 sec"
+              },
+              {
+                "value": "33",
+                "description": "1020 sec"
+              },
+              {
+                "value": "34",
+                "description": "1050 sec"
+              },
+              {
+                "value": "35",
+                "description": "1080 sec"
+              },
+              {
+                "value": "36",
+                "description": "1110 sec"
+              },
+              {
+                "value": "37",
+                "description": "1140 sec"
+              },
+              {
+                "value": "38",
+                "description": "1170 sec"
+              },
+              {
+                "value": "39",
+                "description": "1200 sec (20 min)"
+              },
+              {
+                "value": "40",
+                "description": "1230 sec"
+              },
+              {
+                "value": "41",
+                "description": "1260 sec"
+              },
+              {
+                "value": "42",
+                "description": "1290 sec"
+              },
+              {
+                "value": "43",
+                "description": "1320 sec"
+              },
+              {
+                "value": "44",
+                "description": "1350 sec"
+              },
+              {
+                "value": "45",
+                "description": "1380 sec"
+              },
+              {
+                "value": "46",
+                "description": "1410 sec"
+              },
+              {
+                "value": "47",
+                "description": "1440 sec"
+              },
+              {
+                "value": "48",
+                "description": "1470 sec"
+              },
+              {
+                "value": "49",
+                "description": "1500 sec (25 min)"
+              },
+              {
+                "value": "50",
+                "description": "3 hrs"
+              },
+              {
+                "value": "51",
+                "description": "6 hrs"
+              },
+              {
+                "value": "52",
+                "description": "9 hrs"
+              },
+              {
+                "value": "53",
+                "description": "12 hrs"
+              },
+              {
+                "value": "54",
+                "description": "15 hrs"
+              },
+              {
+                "value": "55",
+                "description": "18 hrs"
+              },
+              {
+                "value": "56",
+                "description": "21 hrs"
+              },
+              {
+                "value": "57",
+                "description": "24 hrs"
+              },
+              {
+                "value": "58",
+                "description": "27 hrs"
+              },
+              {
+                "value": "59",
+                "description": "30 hrs"
+              },
+              {
+                "value": "60",
+                "description": "33 hrs"
+              },
+              {
+                "value": "61",
+                "description": "36 hrs"
+              },
+              {
+                "value": "62",
+                "description": "39 hrs"
+              },
+              {
+                "value": "63",
+                "description": "42 hrs (max)"
+              }
+            ]
+          }
+        },
+        {
+          "reserved": {},
+          "bitoffs": "24",
+          "bitsize": "2"
+        },
+        {
+          "data": "Display Orientation",
+          "shortcut": "DSO",
+          "description": "Adjusts the display orientation",
+          "bitoffs": "26",
+          "bitsize": "2",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "0°"
+              },
+              {
+                "value": "1",
+                "description": "90°"
+              },
+              {
+                "value": "2",
+                "description": "180°"
+              },
+              {
+                "value": "3",
+                "description": "270°"
+              }
+            ]
+          }
+        },
+        {
+          "data": "LRN Bit",
+          "shortcut": "LRNB",
+          "description": "LRN Bit",
+          "bitoffs": "28",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Teach-in telegram"
+              },
+              {
+                "value": "1",
+                "description": "Data telegram"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Button Lock Control",
+          "shortcut": "BLC",
+          "description": "Set the button lock status",
+          "bitoffs": "29",
+          "bitsize": "1",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "Unlocked"
+              },
+              {
+                "value": "1",
+                "description": "Locked"
+              }
+            ]
+          }
+        },
+        {
+          "data": "Service Command",
+          "shortcut": "SER",
+          "description": "Initiates certain temporary service operations",
+          "bitoffs": "30",
+          "bitsize": "2",
+          "enum": {
+            "item": [
+              {
+                "value": "0",
+                "description": "No change"
+              },
+              {
+                "value": "1",
+                "description": "Open valve"
+              },
+              {
+                "value": "2",
+                "description": "Run initialisation"
+              },
+              {
+                "value": "3",
+                "description": "Close valve"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "originalIndex": 125,
+  "eep": "a5-20-04",
+  "rorg_title": "4BS Telegram",
+  "rorg_number": "0xA5",
+  "func_title": "HVAC Components",
+  "func_number": "0x20",
+  "submitter": [
+    "Holter Regelarmaturen GmbH & Co. KG"
+  ]
+}</pre></div></div></body></html>

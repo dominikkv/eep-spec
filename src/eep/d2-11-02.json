@@ -3,7 +3,7 @@
   "number": "0x02",
   "title": "Type 0x02 (description: see table)",
   "status": "released",
-  "description": {},
+  "description": "",
   "ref": {
     "rorg": "D2",
     "func": "11",
@@ -14,5 +14,6 @@
   "rorg_title": "VLD Telegram",
   "rorg_number": "0xD2",
   "func_title": "Bidirectional Room Operating Panel",
-  "func_number": "0x11"
+  "func_number": "0x11",
+  "submitter": []
 }

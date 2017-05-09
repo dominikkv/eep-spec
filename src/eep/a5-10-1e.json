@@ -7,5 +7,6 @@
   "rorg_number": "0xA5",
   "func_title": "Room Operating Panel",
   "func_number": "0x10",
-  "ref":{"rorg":"a5","func":"10","type":"1b"}
+  "description": "",
+  "submitter": []
 }
