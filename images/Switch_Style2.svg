@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" font-weight="bold" text-anchor="middle" font-size="15">
+  <path xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" id="path" d="M50 3.5L90.37 26.70L90.39 73.23L50.08 96.50L9.72 73.31L9.70 26.77L50.00 3.50z" stroke="#539e43" stroke-width="6" fill="white"/>
+  <g transform="translate(-5 0)">
+    <rect x="40" y="54" width="20" height="25" fill="#063b72"/>
+    <circle cx="50" cy="40" r="20" fill="white" />
+    <path d="M45 48h10v10h-10z" fill="none" stroke="black" stroke-width="2"/>
+    <line x1="45" y1="48" x2="55" y2="48" stroke="#dbad00" stroke-width="2"/>
+    <circle cx="50" cy="40" r="20" fill="none" stroke="#dbad00" stroke-width="6" />
+    <text x="82" y="40" fill="#063b72">I</text>
+    <text x="82" y="70" fill="#063b72">O</text>
+  </g>
+</svg>

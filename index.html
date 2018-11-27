@@ -2,9 +2,161 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>Enocean Equipment Profils (EEP) Information for node-enocean</title>
+    <link rel="stylesheet" href="style/main.css">
   </head>
   <body>
-    hello
+    <script src="/templates/rorginfo.js">
+    </script>
+    <script>
+      console.log(window.location.hash)
+      class DB{
+        constructor(){
+          this.data=[]
+          this.json={}
+          this.submitter={}
+        }
+        async loadDB(file){
+          var subfile=await fetch("/script/submitter.json")
+          this.submitter= await subfile.json()
+          var eep_file = await fetch(file)
+          this.json = await eep_file.json()
+          for(var eep in this.json){
+            this.data.push(this.json[eep])
+            var li = document.createElement("li")
+            var img = document.createElement("img")
+            var title = document.createElement("header")
+            var number = document.createElement("div")
+            li.setAttribute("data-eep",eep)
+
+            if(this.json[eep].icon){
+              img.setAttribute("src","images/"+this.json[eep].icon)
+            }else{
+              img.setAttribute("src","images/node-enocean-color.svg")
+            }
+
+            img.setAttribute("width","64px")
+            img.setAttribute("height","64px")
+            number.appendChild(document.createTextNode(eep))
+            title.appendChild(document.createTextNode(this.json[eep].title))
+            li.classList.add("eepListItem")
+            li.appendChild(img)
+            li.appendChild(title)
+            li.appendChild(number)
+            li.addEventListener("click",(evt)=>{
+              var clicked_eep=evt.target.parentNode.getAttribute("data-eep")
+              renderEEPInfo(this.getItem(clicked_eep))
+              window.history.pushState("","","/"+clicked_eep)
+            })
+            eep_list.appendChild(li)
+          }
+        }
+        getItem(id){
+          return this.json[id]
+        }
+        filter(f){
+          return this.data.filter((item)=>{return item.indexOf(f)>-1})
+        }
+      }
+      class App{
+        constructor(){
+          this.db=new DB()
+          this.db.loadDB("eep.json")
+        }
+      }
+      const app=new App()
+
+
+      function Teldata(bytes){
+        this.bits=""
+        for(var i = 0;i<bytes*8;i++){
+          this.bits+="0"
+        }
+        this.setSingleBit = function(index,value){
+          this.bits=this.bits.substr(0,index*1) + value*1 + this.bits.substr(index*1+1);
+        }
+        this.setBits = function(index,length,value){
+          var binValue = pad(value.toString(2),length)
+          for(var i = 0;i<length;i++){
+            this.setSingleBit(index+i,binValue[i])
+          }
+        }
+        this.toSVG=function(){
+          var b = this.toString(2)
+          var st=`<svg width="${b.length*4}px" height="1em">`
+          for(var i = 0;i<b.length;i++){
+            st+=`<rect x="${i*4}" y="0" width="4" height="100%" class="${b[i]==1?"bit_set":"bit_unset"}"/>`
+          }
+          return st+"</svg>"
+        }
+        this.toString=function(base){
+          var out=""
+          if(base===undefined) base=16
+          for(var i=0;i<this.bits.length;i+=8){
+            var currentbyte = parseInt(this.bits.substr(i,8),2)
+            switch(base){
+              case 16:
+                out+=pad(currentbyte.toString(base),2)
+                break
+              case 2:
+                out+=pad(currentbyte.toString(base),8)
+                break
+              case 10:
+                out+=pad(currentbyte.toString(base),3)
+                break
+            }
+          }
+          return out
+        }
+        function pad (num,size) {
+            var s = "00000000000000000000000000000000" + num;
+            return s.substr(s.length-size);
+          }
+      }
+
+
+      function renderEEPInfo(data){
+        document.getElementById("content").innerHTML=rorgInfo({contents:data,submitter:app.db.submitter})
+      }
+
+      window.addEventListener("load",()=>{
+        document.querySelector("#eep_list_filter").addEventListener("onkeyup",(evt)=>{
+          //updateEEPList(evt.target.value)
+        });
+      });
+
+    </script>
+    <div id="content">
+      <section id="index">
+        <h1>node-enocean</h1>
+        <p>
+          This is the Homepage of the node.js module <a href="https://github.com/node-enocean">node-enocean</a>. <a href="https://github.com/node-enocean">node-enocean</a> is an open source enocean ERP and EEP implementation for node.js.
+          It is used to communicate with different sensors and actors in smart home, home automation and iot applications which use the enocean radio protocol (ERP).
+          Here you will find a documentation of the supported enocean equipment profiles (EEP), links to tutorials, articles and other interresting stuff connected not only to <a href="https://github.com/node-enocean">node-enocean</a>, but to enocean in general.
+        </p>
+        <p>
+        The enocean specification documents have some
+        <a href="https://github.com/node-enocean/eep-spec/issues">bugs and flaws</a>.
+         I try to fix some of these problems when i come across them.
+         You can <a href="eep.json">download the fixed eep descriptions as json here</a>.
+         The Information on this site is based on the fixed version.
+         It is implemented in the <a href="https://github.com/node-enocean/eep-transcoder">eep-transcoder</a>,
+          which in turn is used in <a href="https://github.com/node-enocean/node-enocean">node-enocean</a>.
+          </p><p><b>Please be aware, that i'm not affiliated with enocean in any way,
+          and that the information found here is not normative.
+          It is just a description of what is implemented in node-enocean.</b></p>
+      </section>
+    </div>
+    <main id="header">
+      <a href="/">
+      <img src="images/node-enocean-color.svg" width="64px" height="64px"/>
+        </a>
+      <h1>Node Enocean</h1>
+
+    </main>
+    <div id="sidebar">
+    <input type="text" placeholder="filter" id="eep_list_filter"></input>
+    <div id="eep_list"></div>
+    </div>
   </body>
 </html>

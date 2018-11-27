@@ -1,0 +1,22 @@
+.eepListItem{
+  display:grid;
+  grid-template-columns: 64px auto;
+  grid-template-rows: 22px auto;
+  grid-template-areas: "img eep"
+                       "img title";
+  margin-left:5px;
+  background:white;
+  margin:4px 0 0 0;
+  padding:0px;
+  width:300px;
+  list-style-type:none;
+  .shadow1
+}
+.eepListItem img:first-of-type{grid-area: img}
+.eepListItem header:first-of-type{grid-area: title; padding:5px;font-size:9px;color:@color-primary-0}
+.eepListItem div:first-of-type{grid-area: eep; padding:5px;font-size:20px;.mono}
+
+.eepListItem.selected{
+  .gold
+}
+#sidebar input[type="text"]{width:286px;margin-top:5px;padding:5px;border:2px solid @color-secondary-1-0}

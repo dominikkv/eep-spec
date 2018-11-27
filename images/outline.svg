@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" font-weight="bold" text-anchor="middle" font-size="20">
+  <path stroke-linejoin="round" id="path" d="M50 3.5A46.6 46.5 0 1 1 50 96.5A46.5 46.5 0 1 1 50 3.5z" stroke="#539e43" stroke-width="6" fill="white"/>
+  <script>
+  flatten(document.getElementById("path"),6)
+
+function flatten(path,num){
+  var l = path.getTotalLength()
+  var p = path.getPointAtLength(0)
+  var d = `M${p.x} ${p.y}`
+
+  for(var i = (l/num);i&lt;=l;i+=(l/num)){
+
+    p = path.getPointAtLength(i)
+    d+=`L${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+  }
+path.setAttribute("d",d+"z")
+  console.log(d)
+}
+</script>
+</svg>

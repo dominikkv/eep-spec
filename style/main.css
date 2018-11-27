@@ -1,0 +1,214 @@
+@font-face {
+  font-family: 'Comfortaa';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Comfortaa Bold'), local('Comfortaa-Bold'), url(https://fonts.gstatic.com/s/comfortaa/v12/1Ptpg8LJRfWJmhDAuUsw9qR_AtCe.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Share Tech Mono'), local('ShareTechMono-Regular'), url(https://fonts.gstatic.com/s/sharetechmono/v7/J7aHnp1uDWRBEqV98dVQztYldFcLowEA.ttf) format('truetype');
+}
+/* Main Primary color */
+/* Main Secondary color (1) */
+/* Main Secondary color (2) */
+.shadow1 {
+  box-shadow: 1px 1px 5px #aaa;
+}
+.gold {
+  background: #C59F1C;
+  color: white;
+}
+.mono {
+  font-family: 'Share Tech Mono';
+}
+.eepListItem {
+  display: grid;
+  grid-template-columns: 64px auto;
+  grid-template-rows: 22px auto;
+  grid-template-areas: "img eep" "img title";
+  margin-left: 5px;
+  background: white;
+  margin: 4px 0 0 0;
+  padding: 0px;
+  width: 300px;
+  list-style-type: none;
+  box-shadow: 1px 1px 5px #aaa;
+}
+.eepListItem img:first-of-type {
+  grid-area: img;
+}
+.eepListItem header:first-of-type {
+  grid-area: title;
+  padding: 5px;
+  font-size: 9px;
+  color: #653399;
+}
+.eepListItem div:first-of-type {
+  grid-area: eep;
+  padding: 5px;
+  font-size: 20px;
+  font-family: 'Share Tech Mono';
+}
+.eepListItem.selected {
+  background: #C59F1C;
+  color: white;
+}
+#sidebar input[type="text"] {
+  width: 286px;
+  margin-top: 5px;
+  padding: 5px;
+  border: 2px solid #B5D83C;
+}
+body {
+  background: #ddd;
+  padding: 0;
+  margin: 0;
+  color: #333;
+  font-family: Comfortaa;
+}
+h3 {
+  color: #769608;
+  font-size: 1.1em;
+}
+#header {
+  background: #653399;
+  color: white;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  height: 10vh;
+}
+#header h1 {
+  margin: 0;
+  padding: 0;
+}
+#content {
+  position: absolute;
+  left: 320px;
+  top: 12vh;
+  right: 0px;
+}
+#content section {
+  background: white;
+  padding: 10px;
+  margin: 10px;
+  box-shadow: 1px 1px 5px #aaa;
+}
+#content section h3 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #653399;
+  font-size: 0.8em;
+}
+.card {
+  background: white;
+  padding: 10px;
+  margin: 10px;
+  box-shadow: 1px 1px 5px #aaa;
+}
+.card h3 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #653399;
+  font-size: 0.8em;
+}
+#sidebar {
+  height: 90vh;
+  padding-left: 5px;
+  width: 350px;
+}
+#sidebar h3 {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+#sidebar a {
+  text-decoration: none;
+  color: white;
+}
+.raw {
+  color: #aaa;
+  font-size: 0.7em;
+}
+.eep_info {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.eep_info td {
+  border: 1px solid #C59F1C;
+  color: #C59F1C;
+  padding: 3px;
+}
+.eep_info td:nth-of-type(2) {
+  font-family: 'Share Tech Mono';
+  background: #C59F1C;
+  color: white;
+}
+.data_table {
+  border-collapse: collapse;
+  border-spacing: 0px;
+  min-width: 800px;
+}
+.data_table th {
+  background: #653399;
+  color: white;
+  font-size: 12px;
+  border: 1px solid #653399;
+  padding: 3px;
+}
+.data_table td {
+  border: 1px solid #653399;
+  color: #333;
+}
+.data_table td:nth-of-type(1) {
+  width: 40px;
+}
+.data_table td:nth-of-type(2) {
+  width: 40px;
+}
+.enum_table td:nth-of-type(1) {
+  background: #B5D83C;
+  color: white;
+  border-radius: 5px;
+  min-width: 50px;
+}
+.enum_table td:nth-of-type(2) {
+  width: auto;
+}
+.enum_table td {
+  color: #333;
+  border-style: none;
+  font-size: 12px;
+}
+.reserved {
+  color: #aaa;
+  background: #ddd;
+}
+.reserved td {
+  color: #aaa;
+  border: 1px solid #aaa;
+}
+rect {
+  rx: 2px;
+}
+.bit_set {
+  fill: red;
+  stroke: black;
+  stroke-width: 1px;
+}
+.bit_unset {
+  fill: white;
+  stroke: black;
+  stroke-width: 1px;
+}
+.submitter {
+  font-size: 0.65em;
+  color: #653399;
+  margin-top: 5px;
+}
+.description {
+  font-size: 0.9em;
+  margin-top: 5px;
+  padding-top: 5px;
+}
