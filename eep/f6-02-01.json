@@ -2,7 +2,7 @@
   "number": "0x01",
   "title": "Light and Blind Control - Application Style 1",
   "status": "released",
-  "description": "This EEP definition is based on the assumption that a RPS switch module (e.g. PTM200) is\n                installed in a 0-STATE up position!\n                Application Style 1 is widely used in EU but may be found in other markets as well.",
+  "description": "This EEP definition is based on the assumption that a RPS switch module (e.g. PTM200) is installed in a 0-STATE up position! Application Style 1 is widely used in EU but may be found in other markets as well.",
   "case": [{
     "condition": {
       "statusfield": [{
@@ -35,16 +35,16 @@
       "enum": {
         "item": [{
           "value": "0",
-          "description": "Button AI: <br/> \"Switch light on\" or \"Dim light down\" or \"Move blind closed\""
+          "description": "Button AI: \"Switch light on\" or \"Dim light down\" or \"Move blind closed\""
         }, {
           "value": "1",
-          "description": "Button A0: <br/> \"Switch light off\" or \"Dim light up\" or \"Move blind open\""
+          "description": "Button A0: \"Switch light off\" or \"Dim light up\" or \"Move blind open\""
         }, {
           "value": "2",
-          "description": "Button BI: <br/>“Switch light on” or \"Dim light down” or \"Move blind closed”"
+        "description": "Button BI: \"Switch light on\" or \"Dim light down\" or \"Move blind closed”"
         }, {
           "value": "3",
-          "description": "Button B0: <br/>“Switch light off” or “Dim light up” or \"Move blind open”"
+          "description": "Button B0: \"Switch light off\" or \"Dim light up\" or \"Move blind open\""
         }]
       }
     }, {
