@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="style/main.css">
   </head>
   <body>
-    <script src="/templates/rorginfo.js">
+    <script src="templates/rorginfo.js">
     </script>
     <script>
       console.log(window.location.hash)
@@ -17,7 +17,7 @@
           this.submitter={}
         }
         async loadDB(file){
-          var subfile=await fetch("/script/submitter.json")
+          var subfile=await fetch("script/submitter.json")
           this.submitter= await subfile.json()
           var eep_file = await fetch(file)
           this.json = await eep_file.json()
